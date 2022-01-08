@@ -1,0 +1,4 @@
+[JiraInfo]
+TF_JIRA_DOMAIN = '[jira_domain]]'
+TF_JIRA_EMAIL = '[email]'
+TF_JIRA_TOKEN = '[token]'
