@@ -1,5 +1,5 @@
-NEW_FEATURE_ISSUE_TYPES = ['Story', 'Change Request']
-PRIMARY_ISSUE_TYPES = ['Story', 'Change Request', 'Bug', 'Test Plan']
+NEW_FEATURE_ISSUE_TYPES = ['Story', 'Change Request', 'Feature Request']
+PRIMARY_ISSUE_TYPES = ['Story', 'Feature Request', 'Change Request', 'Bug', 'Test Plan']
 SUB_ISSUE_TYPES = ['Sprint Bug', 'Sprint Task', 'Sub Test Execution']
 TEST_ISSUE_TYPES = ['Test Execution', 'Test Case']
 DONE_ISSUE_STATUSES = ['Done', 'Resolved', 'Fixed', 'Closed']
