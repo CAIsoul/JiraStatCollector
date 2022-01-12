@@ -1,6 +1,6 @@
 from datetime import timedelta
 from dateutil import parser
-from jiradata.data_model import JiraIssue, TeamStat, MemberStat
+from jiradata.data_model import JiraIssue, TeamStat, MemberStat, WorkLogInfo
 
 NEW_FEATURE_ISSUE_TYPES = ['Story', 'Change Request']
 PRIMARY_ISSUE_TYPES = ['Story', 'Change Request', 'Bug']
@@ -390,3 +390,24 @@ def appendContributionFromLogs(log_list,
             contributor_summary[name] = 0
 
         contributor_summary[name] += log['timeSpentSeconds']
+
+
+def summarizedSprintWorkLogs(issue_list, start_date, end_date):
+    work_log_summary = {}
+
+    for issue in issue_list:
+        for log in issue['fields']['worklog']['worklogs']:
+            log_time = parser.parse(log['created'])
+
+            if log_time < start_date or log_time > end_date:
+                continue
+            else:
+                time_delta = log_time - start_date
+                if time_delta.days not in work_log_summary:
+                    work_log_summary[time_delta.days] = []
+
+                work_log_info = WorkLogInfo(log, issue['key'])
+
+                work_log_summary[time_delta.days].append(work_log_info)
+
+    return work_log_summary

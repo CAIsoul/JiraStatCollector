@@ -2,6 +2,7 @@ import csv
 import re
 import jiradata.data_service as data
 import jiradata.data_process as process
+from jiradata.data_model import WorkLogInfo
 
 from datetime import timedelta
 from dateutil import parser
@@ -314,11 +315,44 @@ def exportSprintReport(sprint_id):
     print('Sprint Overview Exported.')
 
 
-def showSprintMemberLogs(sprint_id):
+def exportSprintTimeLog(sprint_id):
     info = data.getSprintInfo(sprint_id)
     issues = data.getSprintIssuesViaRequest(sprint_id)
 
-    start_date = info['startdate']
-    end_date = info['enddate']
+    start_date = parser.parse(info['startDate'])
+    end_date = parser.parse(info['endDate'])
 
-    member_log_summary = {}
+    work_log_summary = process.summarizedSprintWorkLogs(
+        issues, start_date, end_date)
+
+    outputFilename = 'output/sprint-work-log (' + (re.sub(
+        '/', '-', info['name'])) + ').csv'
+
+    with open(outputFilename, mode='w', newline='') as report_file:
+        report_writter = csv.writer(report_file,
+                                    delimiter=',',
+                                    quotechar='"',
+                                    quoting=csv.QUOTE_MINIMAL)
+        report_writter.writerow(['Work Log Report:', info['name']])
+        report_writter.writerow(
+            ['Date', 'Member', 'JIRA Issue', 'Logged Hour(s)'])
+
+        for delta in list(work_log_summary):
+            this_date = start_date + timedelta(days=1)
+
+            log_list = work_log_summary[delta]
+
+            for index, log in enumerate(log_list):
+                first_column = this_date.strftime(
+                    '%b/%d/%Y') if index == 0 else ''
+                log_values = [
+                    first_column, log.member, log.issueKey,
+                    round(log.duration / 60 / 60, 1)
+                ]
+
+                report_writter.writerow(log_values)
+
+            report_writter.writerow([])
+            report_writter.writerow([])
+
+    print('Sprint Log Report Exported.')

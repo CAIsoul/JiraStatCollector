@@ -99,3 +99,16 @@ class MemberStat:
     logged_time_dev_bug = 0
     logged_time_existing_bug = 0
     logged_time_testing = 0
+
+
+class WorkLogInfo:
+    member = ''
+    duration = 0
+    issueKey = ''
+    created = None
+
+    def __init__(self, log_data, issue_key) -> None:
+        self.member = log_data['author']['displayName']
+        self.duration = log_data['timeSpentSeconds']
+        self.issueKey = issue_key
+        self.created = log_data['created']
