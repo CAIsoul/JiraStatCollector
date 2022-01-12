@@ -263,15 +263,13 @@ def exportSprintReport(sprint_id):
                 0 if member_stat.committed_issue_count <= 0 else round(
                     member_stat.committed /
                     member_stat.committed_issue_count, 2),
-                member_stat.max_resolved_issue_point,
-                str(100 * (member_stat.committed /
-                           sprint_stat.committed_issue_count)) +
-                "%" if sprint_stat.committed_issue_count > 0 else 0,
+                member_stat.max_committed_issue_point,
+                str(100 * (member_stat.committed / sprint_stat.committed)) +
+                "%" if sprint_stat.committed > 0 else 0,
                 member_stat.resolved_issue_count,
                 round(member_stat.finished, 1),
-                0 if member_stat.resolved_issue_count <= 0 else round(
-                    member_stat.finished /
-                    member_stat.resolved_issue_count, 2),
+                0 if sprint_stat.committed <= 0 else round(
+                    member_stat.finished / sprint_stat.finished, 2),
                 member_stat.max_resolved_issue_point,
                 str(100 * (member_stat.finished / sprint_stat.finished)) +
                 "%" if sprint_stat.finished > 0 else 0,
@@ -338,7 +336,7 @@ def exportSprintTimeLog(sprint_id):
             ['Date', 'Member', 'JIRA Issue', 'Logged Hour(s)'])
 
         for delta in list(work_log_summary):
-            this_date = start_date + timedelta(days=1)
+            this_date = start_date + timedelta(days=delta)
 
             log_list = work_log_summary[delta]
 
