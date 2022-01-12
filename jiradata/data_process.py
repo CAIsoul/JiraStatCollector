@@ -48,10 +48,16 @@ def summarize_sprint_stat(primary_issue_summary, sprint_start, sprint_end):
 
         calculateMainContributor(issue_data, sprint_start, sprint_end)
 
-        accumulateStatForPrimaryIssue(issue_data, team_stat, member_stat_dict,
-                                      sprint_start, sprint_start)
+        accumulatePrimaryIssueStatForSprint(issue_data, team_stat,
+                                            member_stat_dict, sprint_start,
+                                            sprint_end)
 
     team_stat.member_stat_summary = member_stat_dict
+
+    team_stat.logged_time_total = (team_stat.logged_time_new_feature +
+                                   team_stat.logged_time_dev_bug +
+                                   team_stat.logged_time_existing_bug +
+                                   team_stat.logged_time_testing)
 
     return team_stat
 
@@ -61,16 +67,14 @@ def summarize_kanban_stat(primary_issue_summary, review_start, review_end):
     team_stat = TeamStat()
     member_stat_dict = {}
 
-    team_stat.name = review_start.strftime(
-        '%b/%d/%Y') + ' ~ ' + review_end.strftime('%b/%d/%Y')
-
     for id in list(primary_issue_summary):
         issue_data = primary_issue_summary[id]
 
         calculateMainContributor(issue_data)
 
-        accumulateStatForPrimaryIssue(issue_data, team_stat, member_stat_dict,
-                                      review_start, review_end)
+        accumulatePrimaryIssueStatForKanban(issue_data, team_stat,
+                                            member_stat_dict, review_start,
+                                            review_end)
 
     team_stat.member_stat_summary = member_stat_dict
 
@@ -91,17 +95,151 @@ def matchDateRangeLimit(dateStr, start_date=None, end_date=None):
         date = parser.parse(dateStr)
 
         return ((start_date is not None and date < start_date)
-                or end_date is not None and date > end_date) == False
+                or (end_date is not None and date > end_date)) == False
 
     return True
 
 
-# accumulate stat from primary issues (including sub-issues)
-def accumulateStatForPrimaryIssue(issue_data,
-                                  team_stat,
-                                  member_stat_dict,
-                                  start_date=None,
-                                  end_date=None):
+# accumulate sprint stat from primary issues (including sub-issues)
+def accumulatePrimaryIssueStatForSprint(issue_data,
+                                        team_stat,
+                                        member_stat_dict,
+                                        start_date=None,
+                                        end_date=None):
+
+    team_stat.committed_issue_count += 1
+
+    is_resolved = False
+
+    if issue_data.resolution_date is not None and issue_data.resolution_date != '':
+        is_resolved = matchDateRangeLimit(issue_data.resolution_date,
+                                          start_date, end_date)
+
+    if is_resolved:
+        team_stat.resolved_issue_count += 1
+
+    if issue_data.story_point is not None and issue_data.story_point > 0:
+        team_stat.committed += issue_data.story_point
+
+        if is_resolved:
+            team_stat.finished += issue_data.story_point
+
+        if issue_data.main_contributor != '':
+            main_contributor_stat = getMemberStatData(
+                member_stat_dict, issue_data.main_contributor)
+            main_contributor_stat.committed += issue_data.story_point
+
+            if (main_contributor_stat.max_assigned_issue_point <= 0
+                    or issue_data.story_point >
+                    main_contributor_stat.max_assigned_issue_point):
+                main_contributor_stat.max_assigned_issue_point = issue_data.story_point
+
+            if is_resolved:
+                main_contributor_stat.finished += issue_data.story_point
+                main_contributor_stat.resolved_issue_count += 1
+
+                if (main_contributor_stat.max_resolved_issue_point <= 0
+                        or issue_data.story_point >
+                        main_contributor_stat.max_resolved_issue_point):
+                    main_contributor_stat.max_resolved_issue_point = issue_data.story_point
+
+    # process work logs
+    if issue_data.type in NEW_FEATURE_ISSUE_TYPES:
+
+        for log in issue_data.work_logs:
+            if matchDateRangeLimit(log['created'], start_date,
+                                   end_date) == False:
+                continue
+
+            logged_time = log['timeSpentSeconds']
+            member_name = log['author']['displayName']
+
+            team_stat.logged_time_new_feature += logged_time
+            getMemberStatData(
+                member_stat_dict,
+                member_name).logged_time_new_feature += logged_time
+
+        for sub_issue in issue_data.sub_issues:
+
+            for log in sub_issue.work_logs:
+                if matchDateRangeLimit(log['created'], start_date,
+                                       end_date) == False:
+                    continue
+
+                logged_time = log['timeSpentSeconds']
+                member_name = log['author']['displayName']
+
+                if sub_issue.type == 'Sprint Task':
+                    team_stat.logged_time_new_feature += logged_time
+                    getMemberStatData(
+                        member_stat_dict,
+                        member_name).logged_time_new_feature += logged_time
+
+                elif sub_issue.type == 'Sprint Bug':
+                    team_stat.logged_time_dev_bug += logged_time
+                    getMemberStatData(
+                        member_stat_dict,
+                        member_name).logged_time_dev_bug += logged_time
+                    getMemberStatData(member_stat_dict,
+                                      issue_data.main_contributor).dev_bug += 1
+
+                elif sub_issue.type == 'Test Case' or sub_issue.type == 'Sub Test Execution':
+                    team_stat.logged_time_testing += logged_time
+                    getMemberStatData(
+                        member_stat_dict,
+                        member_name).logged_time_testing += logged_time
+
+                else:
+                    team_stat.logged_time_new_feature += logged_time
+                    getMemberStatData(
+                        member_stat_dict,
+                        member_name).logged_time_new_feature += logged_time
+
+    elif issue_data.type == 'Bug':
+
+        if is_resolved:
+            team_stat.fixed_bug += 1
+            getMemberStatData(member_stat_dict,
+                              issue_data.main_contributor).fixed_bug += 1
+
+        for log in issue_data.work_logs:
+            if matchDateRangeLimit(log['created'], start_date,
+                                   end_date) == False:
+                continue
+
+            logged_time = log['timeSpentSeconds']
+            member_name = log['author']['displayName']
+
+            team_stat.logged_time_existing_bug += logged_time
+            getMemberStatData(
+                member_stat_dict,
+                member_name).logged_time_existing_bug += logged_time
+
+    elif issue_data.type == 'Test Plan':
+        for log in issue_data.work_logs:
+            if matchDateRangeLimit(log['created'], start_date,
+                                   end_date) == False:
+                continue
+
+            if matchDateRangeLimit(log['created'], start_date, end_date):
+                logged_time = log['timeSpentSeconds']
+                member_name = log['author']['displayName']
+
+                team_stat.logged_time_testing += logged_time
+                getMemberStatData(
+                    member_stat_dict,
+                    member_name).logged_time_testing += logged_time
+
+    else:
+        pass
+
+
+# accumulate kanban stat from primary issues (including sub-issues)
+def accumulatePrimaryIssueStatForKanban(issue_data,
+                                        team_stat,
+                                        member_stat_dict,
+                                        start_date=None,
+                                        end_date=None):
     is_resolved = False
 
     if issue_data.resolution_date is not None and issue_data.resolution_date != '':
@@ -117,10 +255,10 @@ def accumulateStatForPrimaryIssue(issue_data,
             main_contributor_stat.finished += issue_data.story_point
             main_contributor_stat.resolved_issue_count += 1
 
-            if (main_contributor_stat.max_issue_point <= 0
+            if (main_contributor_stat.max_resolved_issue_point <= 0
                     or issue_data.story_point >
-                    main_contributor_stat.max_issue_point):
-                main_contributor_stat.max_issue_point = issue_data.story_point
+                    main_contributor_stat.max_resolved_issue_point):
+                main_contributor_stat.max_resolved_issue_point = issue_data.story_point
 
     if issue_data.type in NEW_FEATURE_ISSUE_TYPES:
 

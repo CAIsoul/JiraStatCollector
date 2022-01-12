@@ -327,13 +327,6 @@ def exportSprintOverview(sprintId):
     sprintInfo = data.getSprintInfo(sprintId)
     sprintIssues = data.getSprintIssues(sprintId)
     sprintReview = gatherSprintInformation(sprintIssues, sprintInfo['endDate'])
-    # sortedIssues = sortSprintData(sprintIssues)
-    # primary_issue_summary = process.process_issue_list(sprintIssues)
-
-    # sprint_start = parser.parse(sprintInfo['startDate'])
-    # sprint_end = parser.parse(sprintInfo['endDate'])
-    # sprint_summary = process.summarize_sprint_stat(
-    #     primary_issue_summary, sprint_start, sprint_end)
 
     result = gatherDevInformation2(sprintIssues, sprintInfo['startDate'],
                                    sprintInfo['endDate'])
@@ -471,7 +464,7 @@ def exportSprintOverview(sprintId):
 # exportSprintOverview(1465)
 # exportSprintOverview(1472)
 # exportSprintOverview(1485)
-exportSprintOverview(1493)
+exportSprintOverview(1478)
 
 # Team 1 -
 # Team 2 - 1473

@@ -1,5 +1,7 @@
 NEW_FEATURE_ISSUE_TYPES = ['Story', 'Change Request', 'Feature Request']
-PRIMARY_ISSUE_TYPES = ['Story', 'Feature Request', 'Change Request', 'Bug', 'Test Plan']
+PRIMARY_ISSUE_TYPES = [
+    'Story', 'Feature Request', 'Change Request', 'Bug', 'Test Plan'
+]
 SUB_ISSUE_TYPES = ['Sprint Bug', 'Sprint Task', 'Sub Test Execution']
 TEST_ISSUE_TYPES = ['Test Execution', 'Test Case']
 DONE_ISSUE_STATUSES = ['Done', 'Resolved', 'Fixed', 'Closed']
@@ -37,7 +39,8 @@ class JiraIssue():
 
         if self.is_primary():
             self.resolution_date = data['fields']['resolutiondate']
-            self.story_point = (0 if data['fields']['customfield_10026'] is None
+            self.story_point = (0 if 'customfield_10026' not in data['fields']
+                                or data['fields']['customfield_10026'] is None
                                 else data['fields']['customfield_10026'])
         else:
             self.parent_id = data['fields']['parent']['id']
@@ -68,6 +71,8 @@ class TeamStat:
     finished = 0
     fixed_bug = 0
     dev_bug = 0
+    committed_issue_count = 0
+    resolved_issue_count = 0
     logged_time_total = 0
     logged_time_new_feature = 0
     logged_time_dev_bug = 0
@@ -85,8 +90,10 @@ class MemberStat:
     finished = 0
     fixed_bug = 0
     dev_bug = 0
+    committed_issue_count = 0
     resolved_issue_count = 0
-    max_issue_point = 0
+    max_assigned_issue_point = 0
+    max_resolved_issue_point = 0
     logged_time_total = 0
     logged_time_new_feature = 0
     logged_time_dev_bug = 0
