@@ -92,7 +92,7 @@ class MemberStat:
     dev_bug = 0
     committed_issue_count = 0
     resolved_issue_count = 0
-    max_assigned_issue_point = 0
+    max_committed_issue_point = 0
     max_resolved_issue_point = 0
     logged_time_total = 0
     logged_time_new_feature = 0

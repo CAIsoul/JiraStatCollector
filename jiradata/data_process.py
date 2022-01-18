@@ -129,10 +129,10 @@ def accumulatePrimaryIssueStatForSprint(issue_data,
                 member_stat_dict, issue_data.main_contributor)
             main_contributor_stat.committed += issue_data.story_point
 
-            if (main_contributor_stat.max_assigned_issue_point <= 0
+            if (main_contributor_stat.max_committed_issue_point <= 0
                     or issue_data.story_point >
-                    main_contributor_stat.max_assigned_issue_point):
-                main_contributor_stat.max_assigned_issue_point = issue_data.story_point
+                    main_contributor_stat.max_committed_issue_point):
+                main_contributor_stat.max_committed_issue_point = issue_data.story_point
 
             if is_resolved:
                 main_contributor_stat.finished += issue_data.story_point
