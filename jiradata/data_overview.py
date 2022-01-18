@@ -335,14 +335,22 @@ def exportSprintTimeLog(sprint_id):
         report_writter.writerow(
             ['Date', 'Member', 'JIRA Issue', 'Logged Hour(s)'])
 
-        for delta in list(work_log_summary):
-            this_date = start_date + timedelta(days=delta)
+        sprint_days = (end_date - start_date).days
 
-            log_list = work_log_summary[delta]
+        for i in range(sprint_days):
+            this_date = start_date + timedelta(days=i)
+            date_str = this_date.strftime('%b/%d/%Y')
+
+            if i not in work_log_summary:
+                report_writter.writerow([date_str])
+                report_writter.writerow([])
+                report_writter.writerow([])
+                continue
+
+            log_list = work_log_summary[i]
 
             for index, log in enumerate(log_list):
-                first_column = this_date.strftime(
-                    '%b/%d/%Y') if index == 0 else ''
+                first_column = date_str if index == 0 else ''
                 log_values = [
                     first_column, log.member, log.issueKey,
                     round(log.duration / 60 / 60, 1)
