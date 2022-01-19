@@ -7,6 +7,65 @@ from jiradata.data_model import WorkLogInfo
 from datetime import timedelta
 from dateutil import parser
 
+team_info = {
+    'Team 2': {
+        'developer': [
+            'Zhipeng (David) Xie',
+            'Paul Huang',
+            'Howard Wu',
+            'Zhiguo (Ronel) Wu',
+        ],
+        'tester': [
+            'Manman (Mancy) Xu',
+        ]
+    },
+    'Team 3': {
+        'developer': [
+            'Jiangyi (Sailias) Peng',
+            'Hantian (Tom) Wu',
+            'Wei (Nate) Shi',
+            'Jiaqi Cai',
+        ],
+        'tester': [
+            'Weiying (Amy) Shi',
+        ]
+    },
+    'Team 4': {
+        'developer': [
+            'Xihong (Scott) Shi',
+            'Wei (Will) Xiao',
+            'Chenjie (Leo) Deng',
+            'Lianbo Lu',
+        ],
+        'tester': [
+            'Zhihong (Kevin) Chen',
+        ]
+    },
+    'Team 6': {
+        'developer': [
+            'Qingjiao (Cary) Liu',
+            'Guoqing (Dong) Dong',
+            'Jie (Albin) Xi',
+            'Hugh Zhang',
+            'Min Hong',
+        ],
+        'tester': [
+            'Wei (Vivian) Zhang',
+        ]
+    },
+    'Team 7': {
+        'developer': [
+            'Kai (Ted) Li',
+            'Zhan (Sam) Shi',
+            'Min Li',
+            'Xu (Sara) Chu',
+        ],
+        'tester': [
+            'Xiaochun (Spring) Liu',
+        ]
+    },
+}
+
 
 def prepareKanbanReportData(board_id, period_start, review_period,
                             period_count):
@@ -142,7 +201,10 @@ def exportKanbanReport(board_id,
                 if name not in all_contributors:
                     all_contributors.append(name)
 
-        # print team primary issue stat
+        # print team primary issue stat'
+        report_writter.writerow([])
+        report_writter.writerow([])
+
         report_writter.writerow(['Primary Issue Overview:'])
         report_writter.writerow([
             'Issue Key', 'Issue Type', 'Story Point', 'Main Contributor',
@@ -178,7 +240,7 @@ def displayPercentage(numerator, denominator):
     return str(100 * (numerator / denominator)) + "%" if denominator > 0 else 0
 
 
-def exportSprintReport(sprint_id):
+def exportSprintReport(sprint_id, team, share_pattern=1):
     sprint_info = data.getSprintInfo(sprint_id)
     sprint_issues = data.getSprintIssuesViaRequest(sprint_id)
 
@@ -188,7 +250,10 @@ def exportSprintReport(sprint_id):
     end_date = parser.parse(sprint_info['endDate'])
 
     sprint_stat = process.summarize_sprint_stat(primary_issue_summary,
-                                                start_date, end_date)
+                                                start_date, end_date,
+                                                team_info[team]['developer'],
+                                                team_info[team]['tester'],
+                                                share_pattern)
 
     outputFilename = 'output/sprint-overview (' + (re.sub(
         '/', '-', sprint_info['name'])) + ').csv'
@@ -239,13 +304,31 @@ def exportSprintReport(sprint_id):
         summary_writter.writerow([])
         summary_writter.writerow([])
 
+        summary_writter.writerow(['Dev Bug Overview:'])
+        for category in list(sprint_stat.dev_bug_sum):
+            summary_writter.writerow(
+                [category, sprint_stat.dev_bug_sum[category]])
+
+        summary_writter.writerow([])
+        summary_writter.writerow([])
+
         summary_writter.writerow(['Member Overview:'])
         summary_writter.writerow([
-            'Member', 'Total Hours Logged', 'Assigned Count', 'Assigned Point',
-            'Avg. Assigned Point', 'Max Single Assigned Point',
-            'Assigned Contribution', 'Finished Count', 'Finished Point',
-            'Avg. Finished Point', 'Max Single Finished Point',
-            'Finished Contribution', 'Fix Existing Bug Count', 'Completeness'
+            'Member',
+            'Total Hours Logged',
+            'Assigned Count',
+            'Assigned Point',
+            'Avg. Assigned Point',
+            'Max Single Assigned Point',
+            'Assigned Contribution',
+            'Finished Count',
+            'Finished Point',
+            'Avg. Finished Point',
+            'Max Single Finished Point',
+            'Finished Contribution',
+            'Fix Existing Bug Count',
+            'Completeness',
+            'Reported Dev Bug Count',
         ])
 
         for name in list(sprint_stat.member_stat_summary):
@@ -276,6 +359,7 @@ def exportSprintReport(sprint_id):
                 member_stat.fixed_bug,
                 str(100 * (member_stat.finished / member_stat.committed)) +
                 "%" if member_stat.committed > 0 else 0,
+                member_stat.report_dev_bug,
             ])
 
         all_contributors = []
@@ -287,8 +371,13 @@ def exportSprintReport(sprint_id):
         # print team primary issue stat
         summary_writter.writerow(['Primary Issue Overview:'])
         summary_writter.writerow([
-            'Issue Key', 'Issue Type', 'Story Point', 'Main Contributor',
-            'Resolved', 'Resolved Date'
+            'Issue Key',
+            'Issue Type',
+            'Story Point',
+            'Main Contributor',
+            'Resolved',
+            'Resolved Date',
+            'Dev Bug Count',
         ] + all_contributors)
 
         for id in list(primary_issue_summary):
@@ -305,9 +394,13 @@ def exportSprintReport(sprint_id):
                     member_contribution.append(0)
 
             summary_writter.writerow([
-                issue_data.key, issue_data.type, issue_data.story_point,
-                issue_data.main_contributor, 1 if is_resolved else 0,
-                issue_data.resolution_date
+                issue_data.key,
+                issue_data.type,
+                issue_data.story_point,
+                issue_data.main_contributor,
+                1 if is_resolved else 0,
+                issue_data.resolution_date,
+                issue_data.dev_bug_count,
             ] + member_contribution)
 
     print('Sprint Overview Exported.')
@@ -348,6 +441,7 @@ def exportSprintTimeLog(sprint_id):
                 continue
 
             log_list = work_log_summary[i]
+            log_list = sorted(log_list, key=lambda x: x.member)
 
             for index, log in enumerate(log_list):
                 first_column = date_str if index == 0 else ''

@@ -21,6 +21,9 @@ class JiraIssue():
     work_logs = []
     contributors = {}
     main_contributor = ''
+    labels = []
+    reporter = ''
+    dev_bug_count = 0
 
     def __init__(self):
         self.sub_issues = []
@@ -36,6 +39,8 @@ class JiraIssue():
         self.type = data['fields']['issuetype']['name']
         self.status = data['fields']['status']['name']
         self.work_logs = data['fields']['worklog']['worklogs']
+        self.reporter = data['fields']['reporter']['displayName']
+        self.labels = data['fields']['labels']
 
         if self.is_primary():
             self.resolution_date = data['fields']['resolutiondate']
@@ -79,6 +84,7 @@ class TeamStat:
     logged_time_existing_bug = 0
     logged_time_testing = 0
     member_stat_summary = {}
+    dev_bug_sum = {}
 
     def __init__(self):
         self.member_stat_summary = {}
@@ -90,6 +96,7 @@ class MemberStat:
     finished = 0
     fixed_bug = 0
     dev_bug = 0
+    report_dev_bug = 0
     committed_issue_count = 0
     resolved_issue_count = 0
     max_committed_issue_point = 0
