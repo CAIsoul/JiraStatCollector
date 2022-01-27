@@ -59,6 +59,7 @@ team_info = {
             'Zhan (Sam) Shi',
             'Min Li',
             'Xu (Sara) Chu',
+            'Lu Jian',
         ],
         'tester': [
             'Xiaochun (Spring) Liu',
@@ -367,6 +368,9 @@ def exportSprintReport(sprint_id, team, share_pattern=1):
             for name in primary_issue_summary[key].contributors:
                 if name not in all_contributors:
                     all_contributors.append(name)
+
+        summary_writter.writerow([])
+        summary_writter.writerow([])
 
         # print team primary issue stat
         summary_writter.writerow(['Primary Issue Overview:'])
