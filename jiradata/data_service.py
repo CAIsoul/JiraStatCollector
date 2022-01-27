@@ -11,9 +11,9 @@ config = configparser.ConfigParser()
 configFilePath = os.path.join(os.path.dirname(__file__) + r'/../app.ini')
 config.read(configFilePath, encoding='utf-8')
 
-TF_JIRA_DOMAIN = config.get('JiraInfo', 'TF_JIRA_DOMAIN')
-TF_JIRA_EMAIL = config.get('JiraInfo', 'TF_JIRA_EMAIL')
-TF_JIRA_TOKEN = config.get('JiraInfo', 'TF_JIRA_TOKEN')
+TF_JIRA_DOMAIN = config.get('Jira', 'DOMAIN')
+TF_JIRA_EMAIL = config.get('Jira', 'EMAIL')
+TF_JIRA_TOKEN = config.get('Jira', 'TOKEN')
 
 auth = HTTPBasicAuth(TF_JIRA_EMAIL, TF_JIRA_TOKEN)
 headers = {"Accept": "application/json"}
@@ -26,7 +26,6 @@ def generateQueryStr(
     project_key='',
     issue_type='',
 ):
-    # criteriaList = ['issuetype not in ("Test Plan")']
     criteriaList = []
 
     if sprint_id > 0:
@@ -37,10 +36,6 @@ def generateQueryStr(
 
     if len(issue_type) > 0:
         criteriaList.append('issuetype=%t' % issue_type)
-
-    # to ensure that the order will be:
-    # Bug -> Sprint Bug -> Sprint Task -> Story
-    # sortByStr = ' order by issuetype '
 
     sortByStr = ' order by key '
 
@@ -80,7 +75,8 @@ def searchIssuesViaRequest(queryStr, includeFields, startAt=0):
     length = len(issues)
 
     if data['total'] > data['startAt'] + length:
-        return issues + searchIssues(queryStr, includeFields, startAt + length)
+        return issues + searchIssuesViaRequest(queryStr, includeFields,
+                                               startAt + length)
 
     return issues
 
@@ -98,11 +94,24 @@ def searchIssues(queryStr, includeFields, startAt=0):
     return result
 
 
+# get sprint issues via request
+def getSprintIssuesViaRequest(sprint_id):
+    queryStr = generateQueryStr(sprint_id=sprint_id)
+    includeFields = [
+        'key', 'id', 'parent', 'issuetype', 'worklog', 'customfield_10026',
+        'resolutiondate', 'status', 'reporter', 'labels'
+    ]
+
+    issues = searchIssuesViaRequest(queryStr, includeFields, 0)
+
+    return issues
+
+
 def getSprintIssues(sprint_id):
     queryStr = generateQueryStr(sprint_id=sprint_id)
     includeFields = [
         'key', 'id', 'parent', 'issuetype', 'worklog', 'customfield_10026',
-        'resolutiondate', 'status'
+        'resolutiondate', 'status', 'reporter'
     ]
 
     issues = searchIssues(queryStr, includeFields, 0)
