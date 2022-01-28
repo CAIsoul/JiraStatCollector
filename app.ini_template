@@ -1,4 +1,4 @@
 [Jira]
-DOMAIN = '[jira_domain]]'
-EMAIL = '[email]'
-TOKEN = '[token]'
+DOMAIN = [jira_domain]
+EMAIL = [email]
+TOKEN = [token]
