@@ -409,14 +409,15 @@ def winnerGetsAll(contribution, story_point, developer_list, tester_list):
 # share the story point by logged time percentage
 def shareByLoggedTime(contribution, story_point, developer_list, tester_list):
     share_dict = {}
-    member_list = contribution.keys()
+    member_list = list(contribution.keys())
 
     if len(member_list) > 1:
-        member_list = filter(lambda i: i in developer_list or i in tester_list,
-                             member_list)
+        member_list = list(
+            filter(lambda i: i in developer_list or i in tester_list,
+                   member_list))
 
     if len(member_list) > 1:
-        member_list = filter(lambda i: i in developer_list, member_list)
+        member_list = list(filter(lambda i: i in developer_list, member_list))
 
     total_logged_time = 0
     for member in member_list:
