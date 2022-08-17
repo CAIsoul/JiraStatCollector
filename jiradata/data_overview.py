@@ -8,6 +8,15 @@ from datetime import timedelta
 from dateutil import parser
 
 team_info = {
+    'R&D': {
+        'developer': [
+            'Chen Li',
+            'Wei (Nate) Shi',
+            'Juntao (Steven) Cheng',
+            'Yue (Mina) Zhang',
+        ],
+        'tester': []
+    },
     'Team 2': {
         'developer': [
             'Zhipeng (David) Xie',
@@ -15,9 +24,7 @@ team_info = {
             'Howard Wu',
             'Zhiguo (Ronel) Wu',
         ],
-        'tester': [
-            'Manman (Mancy) Xu',
-        ]
+        'tester': []
     },
     'Team 3': {
         'developer': [
@@ -25,6 +32,8 @@ team_info = {
             'Hantian (Tom) Wu',
             'Wei (Nate) Shi',
             'Jiaqi Cai',
+            'Zhe (Jack) Wang',
+            'Yi (Vitale) Zhou',
         ],
         'tester': [
             'Weiying (Amy) Shi',
@@ -36,6 +45,7 @@ team_info = {
             'Wei (Will) Xiao',
             'Chenjie (Leo) Deng',
             'Lianbo Lu',
+            'Haikuo Pan',
         ],
         'tester': [
             'Zhihong (Kevin) Chen',
@@ -59,10 +69,11 @@ team_info = {
             'Zhan (Sam) Shi',
             'Min Li',
             'Xu (Sara) Chu',
-            'Lu Jian',
+            'Lu (Luke) Jian',
+            'Lei Li',
         ],
         'tester': [
-            'Xiaochun (Spring) Liu',
+            'Feng (Fred) Zhou',
         ]
     },
 }
@@ -241,14 +252,22 @@ def displayPercentage(numerator, denominator):
     return str(100 * (numerator / denominator)) + "%" if denominator > 0 else 0
 
 
-def exportSprintReport(sprint_id, team, share_pattern=1):
+def exportSprintReport(sprint_id,
+                       team,
+                       rollover_issue_keys=[],
+                       share_pattern=1):
     sprint_info = data.getSprintInfo(sprint_id)
     sprint_issues = data.getSprintIssuesViaRequest(sprint_id)
+
+    if len(rollover_issue_keys) > 0:
+        rollover_issues = data.getRolloverIssuesByKeys(rollover_issue_keys)
+
+        sprint_issues += rollover_issues
 
     primary_issue_summary = process.process_issue_list(sprint_issues)
 
     start_date = parser.parse(sprint_info['startDate'])
-    end_date = parser.parse(sprint_info['endDate'])
+    end_date = parser.parse(sprint_info['endDate']) + timedelta(days=1)
 
     sprint_stat = process.summarize_sprint_stat(primary_issue_summary,
                                                 start_date, end_date,
@@ -352,7 +371,7 @@ def exportSprintReport(sprint_id, team, share_pattern=1):
                 "%" if sprint_stat.committed > 0 else 0,
                 member_stat.resolved_issue_count,
                 round(member_stat.finished, 1),
-                0 if sprint_stat.committed <= 0 else round(
+                0 if sprint_stat.finished <= 0 else round(
                     member_stat.finished / sprint_stat.finished, 2),
                 member_stat.max_resolved_issue_point,
                 str(100 * (member_stat.finished / sprint_stat.finished)) +

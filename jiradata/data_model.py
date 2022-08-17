@@ -1,6 +1,6 @@
 NEW_FEATURE_ISSUE_TYPES = ['Story', 'Change Request', 'Feature Request']
 PRIMARY_ISSUE_TYPES = [
-    'Story', 'Feature Request', 'Change Request', 'Bug', 'Test Plan'
+    'Story', 'Feature Request', 'Change Request', 'Bug', 'Test Plan', 'Task'
 ]
 SUB_ISSUE_TYPES = ['Sprint Bug', 'Sprint Task', 'Sub Test Execution']
 TEST_ISSUE_TYPES = ['Test Execution', 'Test Case']

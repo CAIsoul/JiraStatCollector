@@ -25,6 +25,7 @@ def generateQueryStr(
     sprint_id=0,
     project_key='',
     issue_type='',
+    issue_keys=[],
 ):
     criteriaList = []
 
@@ -36,6 +37,12 @@ def generateQueryStr(
 
     if len(issue_type) > 0:
         criteriaList.append('issuetype=%t' % issue_type)
+
+    if len(issue_keys) > 0:
+        issue_type_str = ','.join(
+            list(map(lambda x: '"' + x + '"', issue_keys)))
+        criteriaList.append('issuekey in ({}) or parent in ({})'.format(
+            issue_type_str, issue_type_str))
 
     sortByStr = ' order by key '
 
@@ -107,8 +114,29 @@ def getSprintIssuesViaRequest(sprint_id):
     return issues
 
 
-def getSprintIssues(sprint_id):
-    queryStr = generateQueryStr(sprint_id=sprint_id)
+def getRolloverIssuesByKeys(issue_keys):
+    queryStr = generateQueryStr(issue_keys=issue_keys)
+    includeFields = [
+        'key',
+        'id',
+        'parent',
+        'issuetype',
+        'worklog',
+        'customfield_10026',
+        'resolutiondate',
+        'status',
+        'reporter',
+        'labels',
+    ]
+
+    issues = searchIssuesViaRequest(queryStr, includeFields, 0)
+
+    return issues
+
+
+def getSprintIssues(sprint_id, rollover_issue_keys):
+    queryStr = generateQueryStr(sprint_id=sprint_id,
+                                issue_keys=rollover_issue_keys)
     includeFields = [
         'key', 'id', 'parent', 'issuetype', 'worklog', 'customfield_10026',
         'resolutiondate', 'status', 'reporter'

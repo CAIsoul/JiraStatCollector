@@ -24,7 +24,7 @@ def process_issue_list(issue_list):
             if issue_data.id not in primary_issue_summary:
                 primary_issue_summary[issue_data.id] = issue_data
             else:
-                primary_issue_summary[issue_data.id].load(issue_data)
+                primary_issue_summary[issue_data.id].load(issue)
 
             primary_issue_data = primary_issue_summary[issue_data.id]
 
