@@ -83,9 +83,9 @@ def displayPercentage(numerator, denominator):
     return str(100 * (numerator / denominator)) + "%" if denominator > 0 else 0
 
 
-def exportSprintStat(sprint_id, team, rollover_issue_keys=[], share_pattern=1):
+def exportSprintStat(board_id, sprint_id, team, share_pattern=1):
     sprint_issue_dict = data.getSprintIssueDict(sprint_id)
-    sprint_report = data.getSprintReportInfo(sprint_id)
+    sprint_report = data.getSprintReportInfo(board_id, sprint_id)
     sprint_info = SprintSummary(sprint_report)
 
     start_date = sprint_info.start_date
@@ -103,13 +103,9 @@ def exportSprintStat(sprint_id, team, rollover_issue_keys=[], share_pattern=1):
     return sprint_stat
 
 
-def exportSprintReport(sprint_id,
-                       team,
-                       rollover_issue_keys=[],
-                       share_pattern=1):
+def exportSprintReport(board_id, sprint_id, team, share_pattern=1):
 
-    sprint_stat = exportSprintStat(sprint_id, team, rollover_issue_keys,
-                                   share_pattern)
+    sprint_stat = exportSprintStat(board_id, sprint_id, team, share_pattern)
 
     sprint_info = sprint_stat.sprint_info
     primary_issue_summary = sprint_stat.primary_issue_summary

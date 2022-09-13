@@ -145,10 +145,9 @@ def getBoardInfo(board_id):
     return json.loads(response.text)
 
 
-def getSprintReportInfo(sprint_id):
-    sprint_report_view_id = 53
+def getSprintReportInfo(board_id, sprint_id):
     url = TF_JIRA_DOMAIN + '/rest/greenhopper/latest/rapid/charts/sprintreport?rapidViewId={}&sprintId={}'.format(
-        sprint_report_view_id, sprint_id)
+        board_id, sprint_id)
 
     response = requests.request("GET", url, headers=headers, auth=auth)
 
