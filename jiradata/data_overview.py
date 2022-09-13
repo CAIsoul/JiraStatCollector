@@ -142,7 +142,7 @@ def exportSprintReport(sprint_id,
         ])
         summary_writter.writerow(
             ['Original Removed:',
-             str(sprint_info.removed_point)])
+             str(sprint_info.original_removed_point)])
         summary_writter.writerow([
             'Newly Added:',
             str(sprint_info.new_completed_point +

@@ -116,7 +116,7 @@ class SprintSummary():
 
         # Handle punted issues
         for punted_issue in contents['puntedIssues']:
-            if 'currentEstimateStatistic' not in punted_issue or not 'value' in completed_issue[
+            if 'currentEstimateStatistic' not in punted_issue or not 'value' in punted_issue[
                     'currentEstimateStatistic']['statFieldValue']:
                 continue
 
