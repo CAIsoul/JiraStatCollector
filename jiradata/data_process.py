@@ -1,8 +1,6 @@
-import pytz
 import datetime
-import time
 from dateutil import parser
-from jiradata.data_model import JiraIssue, TeamStat, MemberStat, WorkLogInfo
+from jiradata.data_model import TeamStat, MemberStat, WorkLogInfo
 
 NEW_FEATURE_ISSUE_TYPES = ['Story', 'Change Request']
 PRIMARY_ISSUE_TYPES = ['Story', 'Change Request', 'Bug']
@@ -12,8 +10,8 @@ DONE_ISSUE_STATUSES = ['Done', 'Resolved', 'Fixed', 'Closed']
 
 
 # summarize sprint stat
-def summarize_sprint_stat(primary_issue_summary, sprint_start, sprint_end,
-                          developer_list, tester_list, share_pattern):
+def summarize_team_stat(primary_issue_summary, sprint_start, sprint_end,
+                        developer_list, tester_list, share_pattern):
     team_stat = TeamStat()
     member_stat_dict = {}
 

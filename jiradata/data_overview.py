@@ -2,7 +2,7 @@ import csv
 import re
 import jiradata.data_service as data
 import jiradata.data_process as process
-from jiradata.data_model import WorkLogInfo, SprintSummary
+from jiradata.data_model import SprintSummary
 
 from datetime import timedelta
 from dateutil import parser
@@ -83,35 +83,39 @@ def displayPercentage(numerator, denominator):
     return str(100 * (numerator / denominator)) + "%" if denominator > 0 else 0
 
 
-def exportSprintStat(board_id, sprint_id, team, share_pattern=1):
+def exportSprintStat(sprint_id, team, share_pattern=1):
+    sprint_info = data.getSprintInfo(sprint_id)
+    board_id = sprint_info["originBoardId"]
+
     sprint_issue_dict = data.getSprintIssueDict(sprint_id)
     sprint_report = data.getSprintReportInfo(board_id, sprint_id)
-    sprint_info = SprintSummary(sprint_report)
 
-    start_date = sprint_info.start_date
-    end_date = sprint_info.end_date + timedelta(days=1)
+    sprint_summary = SprintSummary(sprint_report)
 
-    sprint_stat = process.summarize_sprint_stat(sprint_issue_dict, start_date,
-                                                end_date,
-                                                team_info[team]['developer'],
-                                                team_info[team]['tester'],
-                                                share_pattern)
+    start_date = sprint_summary.start_date
+    end_date = sprint_summary.end_date + timedelta(days=1)
 
-    sprint_stat.sprint_info = sprint_info
-    sprint_stat.primary_issue_summary = sprint_issue_dict
+    team_stat = process.summarize_team_stat(sprint_issue_dict, start_date,
+                                            end_date,
+                                            team_info[team]['developer'],
+                                            team_info[team]['tester'],
+                                            share_pattern)
 
-    return sprint_stat
+    sprint_summary.primary_issues = sprint_issue_dict
+    sprint_summary.team_stat = team_stat
+
+    return sprint_summary
 
 
-def exportSprintReport(board_id, sprint_id, team, share_pattern=1):
+def exportSprintReport(sprint_id, team, share_pattern=1):
 
-    sprint_stat = exportSprintStat(board_id, sprint_id, team, share_pattern)
+    sprint_summary = exportSprintStat(sprint_id, team, share_pattern)
 
-    sprint_info = sprint_stat.sprint_info
-    primary_issue_summary = sprint_stat.primary_issue_summary
+    primary_issue_summary = sprint_summary.primary_issues
+    team_stat = sprint_summary.team_stat
 
     outputFilename = 'output/sprint-overview (' + (re.sub(
-        '/', '-', sprint_info.name)) + ').csv'
+        '/', '-', sprint_summary.name)) + ').csv'
 
     with open(outputFilename, mode='w', newline='') as review_file:
         summary_writter = csv.writer(review_file,
@@ -119,87 +123,89 @@ def exportSprintReport(board_id, sprint_id, team, share_pattern=1):
                                      quotechar='"',
                                      quoting=csv.QUOTE_MINIMAL)
 
-        summary_writter.writerow([sprint_info.name])
+        summary_writter.writerow([sprint_summary.name])
         summary_writter.writerow([])
 
         summary_writter.writerow(['Sprint Overview:'])
         summary_writter.writerow([
             'Original Committed:',
-            str(sprint_info.original_completed_point +
-                sprint_info.original_not_completed_point +
-                sprint_info.original_removed_point)
+            str(sprint_summary.original_completed_point +
+                sprint_summary.original_not_completed_point +
+                sprint_summary.original_removed_point)
         ])
-        summary_writter.writerow(
-            ['Original Completed:',
-             str(sprint_info.original_completed_point)])
+        summary_writter.writerow([
+            'Original Completed:',
+            str(sprint_summary.original_completed_point)
+        ])
         summary_writter.writerow([
             'Original Not Completed:',
-            str(sprint_info.original_not_completed_point)
+            str(sprint_summary.original_not_completed_point)
         ])
         summary_writter.writerow(
             ['Original Removed:',
-             str(sprint_info.original_removed_point)])
+             str(sprint_summary.original_removed_point)])
         summary_writter.writerow([
             'Newly Added:',
-            str(sprint_info.new_completed_point +
-                sprint_info.new_not_completed_point)
+            str(sprint_summary.new_completed_point +
+                sprint_summary.new_not_completed_point)
         ])
-        summary_writter.writerow(
-            ['Newly Added Completed:',
-             str(sprint_info.new_completed_point)])
+        summary_writter.writerow([
+            'Newly Added Completed:',
+            str(sprint_summary.new_completed_point)
+        ])
         summary_writter.writerow([
             'Newly Added Not Completed:',
-            str(sprint_info.new_not_completed_point)
+            str(sprint_summary.new_not_completed_point)
         ])
         summary_writter.writerow([
             'Total Committed:',
-            str(sprint_info.original_completed_point +
-                sprint_info.original_not_completed_point +
-                sprint_info.original_removed_point +
-                sprint_info.new_completed_point +
-                sprint_info.new_not_completed_point)
+            str(sprint_summary.original_completed_point +
+                sprint_summary.original_not_completed_point +
+                sprint_summary.original_removed_point +
+                sprint_summary.new_completed_point +
+                sprint_summary.new_not_completed_point)
         ])
         summary_writter.writerow([
             'Total Completed:',
-            str(sprint_info.original_completed_point +
-                sprint_info.new_completed_point)
+            str(sprint_summary.original_completed_point +
+                sprint_summary.new_completed_point)
         ])
         summary_writter.writerow([
             'Total Hours Logged:',
-            round(sprint_stat.logged_time_total / 60 / 60, 1)
+            round(team_stat.logged_time_total / 60 / 60, 1)
         ])
         summary_writter.writerow([
             'New Feature Development:',
-            str(100 * (sprint_stat.logged_time_new_feature /
-                       sprint_stat.logged_time_total)) +
-            "%" if sprint_stat.logged_time_total > 0 else 0
+            str(100 * (team_stat.logged_time_new_feature /
+                       team_stat.logged_time_total)) +
+            "%" if team_stat.logged_time_total > 0 else 0
         ])
         summary_writter.writerow([
             'Development Bugs:',
-            str(100 * (sprint_stat.logged_time_dev_bug /
-                       sprint_stat.logged_time_total)) +
-            "%" if sprint_stat.logged_time_total > 0 else 0
+            str(100 *
+                (team_stat.logged_time_dev_bug / team_stat.logged_time_total))
+            + "%" if team_stat.logged_time_total > 0 else 0
         ])
         summary_writter.writerow([
             'Existing Bugs:',
-            str(100 * (sprint_stat.logged_time_existing_bug /
-                       sprint_stat.logged_time_total)) +
-            "%" if sprint_stat.logged_time_total > 0 else 0
+            str(100 * (team_stat.logged_time_existing_bug /
+                       team_stat.logged_time_total)) +
+            "%" if team_stat.logged_time_total > 0 else 0
         ])
         summary_writter.writerow([
             'New Feature Testing:',
-            str(100 * (sprint_stat.logged_time_testing /
-                       sprint_stat.logged_time_total)) +
-            "%" if sprint_stat.logged_time_total > 0 else 0
+            str(100 *
+                (team_stat.logged_time_testing / team_stat.logged_time_total))
+            + "%" if team_stat.logged_time_total > 0 else 0
         ])
 
         summary_writter.writerow([])
         summary_writter.writerow([])
 
         summary_writter.writerow(['Dev Bug Overview:'])
-        for category in list(sprint_stat.dev_bug_sum):
+        for category in list(team_stat.dev_bug_sum):
             summary_writter.writerow(
-                [category, sprint_stat.dev_bug_sum[category]])
+                [category, team_stat.dev_bug_sum[category]])
 
         summary_writter.writerow([])
         summary_writter.writerow([])
@@ -223,8 +229,8 @@ def exportSprintReport(board_id, sprint_id, team, share_pattern=1):
             'Reported Dev Bug Count',
         ])
 
-        for name in list(sprint_stat.member_stat_summary):
-            member_stat = sprint_stat.member_stat_summary[name]
+        for name in list(team_stat.member_stat_summary):
+            member_stat = team_stat.member_stat_summary[name]
             member_total_logged = (member_stat.logged_time_new_feature +
                                    member_stat.logged_time_dev_bug +
                                    member_stat.logged_time_existing_bug +
@@ -239,15 +245,15 @@ def exportSprintReport(board_id, sprint_id, team, share_pattern=1):
                     member_stat.committed /
                     member_stat.committed_issue_count, 2),
                 member_stat.max_committed_issue_point,
-                str(100 * (member_stat.committed / sprint_stat.committed)) +
-                "%" if sprint_stat.committed > 0 else 0,
+                str(100 * (member_stat.committed / team_stat.committed)) +
+                "%" if team_stat.committed > 0 else 0,
                 member_stat.resolved_issue_count,
                 round(member_stat.completed, 1),
-                0 if sprint_stat.completed <= 0 else round(
-                    member_stat.completed / sprint_stat.completed, 2),
+                0 if team_stat.completed <= 0 else round(
+                    member_stat.completed / team_stat.completed, 2),
                 member_stat.max_resolved_issue_point,
-                str(100 * (member_stat.completed / sprint_stat.completed)) +
-                "%" if sprint_stat.completed > 0 else 0,
+                str(100 * (member_stat.completed / team_stat.completed)) +
+                "%" if team_stat.completed > 0 else 0,
                 member_stat.fixed_bug,
                 str(100 * (member_stat.completed / member_stat.committed)) +
                 "%" if member_stat.committed > 0 else 0,

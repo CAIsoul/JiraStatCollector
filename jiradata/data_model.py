@@ -75,6 +75,9 @@ class SprintSummary():
     logged_time_existing_bug = 0
     logged_time_testing = 0
 
+    primary_issues = {}
+    team_stat = {}
+
     def __init__(self, obj):
         contents = obj['contents']
         sprint = obj['sprint']
@@ -149,6 +152,8 @@ class SprintSummary():
         self.logged_time_dev_bug = 0
         self.logged_time_existing_bug = 0
         self.logged_time_testing = 0
+        self.primary_issues = {}
+        self.team_stat = {}
 
 
 class TeamStat:
