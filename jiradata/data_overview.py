@@ -406,7 +406,7 @@ def exportSprintTimeLog(sprint_id, extra_issues):
                 total_col = ''
 
                 if k in total:
-                    total_col = '{} hr(s)'.format(round(total[k]), 1)
+                    total_col = '{} hr(s)'.format(round(total[k], 1))
 
                 total_cols.append(total_col)
 
