@@ -13,24 +13,36 @@ team_info = {
             'Chen Li',
             'Wei (Nate) Shi',
             'Juntao (Steven) Cheng',
-            'Yue (Mina) Zhang',
+            'Chenjie (Leo) Deng',
         ],
         'tester': []
+    },
+    'Team 1': {
+        'developer': [
+            'Zhiguo (Ronel) Wu',
+            'Xiong (Bear) Xu',
+            'Damon Huang',
+            'Hong (Jane) Zhou',
+            'Adrain Xue',
+        ],
+        'tester': [
+            'Hanwei (Susan) Mao',
+        ]
     },
     'Team 2': {
         'developer': [
             'Zhipeng (David) Xie',
             'Paul Huang',
             'Howard Wu',
-            'Zhiguo (Ronel) Wu',
+            'Fan (Jason) Zhu',
+            'Gang (Shawn) Huang',
         ],
-        'tester': []
+        'tester': ['Nan (Murphy) Cheng']
     },
     'Team 3': {
         'developer': [
             'Jiangyi (Sailias) Peng',
             'Hantian (Tom) Wu',
-            'Wei (Nate) Shi',
             'Jiaqi Cai',
             'Zhe (Jack) Wang',
             'Yi (Vitale) Zhou',
@@ -43,9 +55,9 @@ team_info = {
         'developer': [
             'Xihong (Scott) Shi',
             'Wei (Will) Xiao',
-            'Chenjie (Leo) Deng',
             'Lianbo Lu',
             'Haikuo Pan',
+            'Dongjun (Frank) Xing',
         ],
         'tester': [
             'Zhihong (Kevin) Chen',
