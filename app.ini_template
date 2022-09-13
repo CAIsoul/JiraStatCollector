@@ -2,3 +2,6 @@
 DOMAIN = [jira_domain]
 EMAIL = [email]
 TOKEN = [token]
+
+[TimeZone]
+OFFSET=[your_time_zone_offset_in_minute]

@@ -1,11 +1,21 @@
 import csv
 import re
+import os
+import pytz
+import configparser
 import jiradata.data_service as data
 import jiradata.data_process as process
 from jiradata.data_model import SprintSummary
 
 from datetime import timedelta
 from dateutil import parser
+
+config = configparser.ConfigParser()
+configFilePath = os.path.join(os.path.dirname(__file__) + r'/../app.ini')
+config.read(configFilePath, encoding='utf-8')
+
+TIMEZONE_OFFSET = config.get('TimeZone', 'OFFSET')
+TIMEZONE_OFFSET = 0 if TIMEZONE_OFFSET == '' else int(TIMEZONE_OFFSET)
 
 team_info = {
     'R&D': {
@@ -319,52 +329,88 @@ def exportSprintReport(sprint_id, team, share_pattern=1):
     print('Sprint Overview Exported.')
 
 
-def exportSprintTimeLog(sprint_id):
-    info = data.getSprintInfo(sprint_id)
+def exportSprintTimeLog(sprint_id, extra_issues):
+    sprint_info = data.getSprintInfo(sprint_id)
     issues = data.getIssuesBySprintId(sprint_id)
 
-    start_date = parser.parse(info['startDate'])
-    end_date = parser.parse(info['endDate'])
+    if extra_issues is not None and len(extra_issues) > 0:
+        issues += data.getIssuesByKeys(extra_issues)
+
+    # from timezone navie to aware
+    timezone = pytz.FixedOffset(TIMEZONE_OFFSET)
+    start_date = parser.parse(
+        sprint_info['startDate']).replace(tzinfo=timezone)
+    end_date = parser.parse(sprint_info['endDate']).replace(tzinfo=timezone)
 
     work_log_summary = process.summarizedSprintWorkLogs(
         issues, start_date, end_date)
 
+    sprint_day_count = (end_date - start_date).days + 1
+
     outputFilename = 'output/sprint-work-log (' + (re.sub(
-        '/', '-', info['name'])) + ').csv'
+        '/', '-', sprint_info['name'])) + ').csv'
 
     with open(outputFilename, mode='w', newline='') as report_file:
         report_writter = csv.writer(report_file,
                                     delimiter=',',
                                     quotechar='"',
                                     quoting=csv.QUOTE_MINIMAL)
-        report_writter.writerow(['Work Log Report:', info['name']])
-        report_writter.writerow(
-            ['Date', 'Member', 'JIRA Issue', 'Logged Hour(s)'])
+        report_writter.writerow(['Work Log Report:', sprint_info['name']])
+        report_writter.writerow([
+            'Period',
+            start_date.strftime('%Y-%m-%d'),
+            end_date.strftime('%Y-%m-%d')
+        ])
 
-        sprint_days = (end_date - start_date).days
+        display_date_list = list(
+            map(lambda x: (start_date + timedelta(days=x)).strftime('%b %d'),
+                range(sprint_day_count)))
+        report_writter.writerow(['Member\Date'] + display_date_list)
 
-        for i in range(sprint_days):
-            this_date = start_date + timedelta(days=i)
-            date_str = this_date.strftime('%b/%d/%Y')
+        for author in work_log_summary:
+            max = 0
+            total = {}
 
-            if i not in work_log_summary:
-                report_writter.writerow([date_str])
-                report_writter.writerow([])
-                report_writter.writerow([])
-                continue
+            for day in work_log_summary[author]:
+                count = len(work_log_summary[author][day])
+                max = max if count < max else count
 
-            log_list = work_log_summary[i]
-            log_list = sorted(log_list, key=lambda x: x.member)
+            for i in range(max):
+                print_cols = []
+                first_col = author if i == 0 else ''
+                print_cols.append(first_col)
 
-            for index, log in enumerate(log_list):
-                first_column = date_str if index == 0 else ''
-                log_values = [
-                    first_column, log.member, log.issueKey,
-                    round(log.duration / 60 / 60, 1)
-                ]
+                for j in range(sprint_day_count):
+                    this_col = ''
+                    if j in work_log_summary[author] and len(
+                            work_log_summary[author][j]) > i:
+                        log = work_log_summary[author][j][i]
+                        logged_hour = log.duration / 60 / 60
+                        this_col = '{} - {} hr(s) on {}'.format(
+                            log.created.astimezone(timezone).strftime('%H:%M'),
+                            round(logged_hour, 1), log.issue_key)
 
-                report_writter.writerow(log_values)
+                        if j in total:
+                            total[j] += logged_hour
+                        else:
+                            total[j] = logged_hour
 
+                    print_cols.append(this_col)
+
+                report_writter.writerow(print_cols)
+
+            report_writter.writerow([])
+
+            total_cols = ['Total:']
+            for k in range(sprint_day_count):
+                total_col = ''
+
+                if k in total:
+                    total_col = '{} hr(s)'.format(round(total[k]), 1)
+
+                total_cols.append(total_col)
+
+            report_writter.writerow(total_cols)
             report_writter.writerow([])
             report_writter.writerow([])
 

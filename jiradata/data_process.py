@@ -1,5 +1,7 @@
 import datetime
+import pytz
 from dateutil import parser
+from datetime import timedelta
 from jiradata.data_model import TeamStat, MemberStat, WorkLogInfo
 
 NEW_FEATURE_ISSUE_TYPES = ['Story', 'Change Request']
@@ -158,22 +160,43 @@ def appendContributionFromLogs(log_list,
 def summarizedSprintWorkLogs(issue_list, start_date, end_date):
     work_log_summary = {}
 
-    for issue in issue_list:
-        for log in issue['fields']['worklog']['worklogs']:
-            log_time = parser.parse(log['created'])
+    start_of_start_date = start_date.replace(hour=0,
+                                             minute=0,
+                                             second=0,
+                                             microsecond=0)
+    end_of_end_date = (end_date + timedelta(days=1)).replace(hour=0,
+                                                             minute=0,
+                                                             second=0,
+                                                             microsecond=0)
 
-            log_time += datetime.timedelta(hours=13)
+    check_list = {}
+
+    for issue in issue_list:
+        if issue.key in check_list and check_list[issue.key] == True:
+            continue
+        else:
+            check_list[issue.key] = True
+
+        for log in issue.work_logs:
+            log_time = parser.parse(log['started'])
 
             if log_time < start_date or log_time > end_date:
                 continue
             else:
-                time_delta = log_time - start_date
-                if time_delta.days not in work_log_summary:
-                    work_log_summary[time_delta.days] = []
+                work_log_info = WorkLogInfo(log, issue.key)
 
-                work_log_info = WorkLogInfo(log, issue['key'])
+                if work_log_info.author not in work_log_summary:
+                    work_log_summary[work_log_info.author] = {}
 
-                work_log_summary[time_delta.days].append(work_log_info)
+                time_delta = log_time - start_of_start_date
+
+                if time_delta.days not in work_log_summary[
+                        work_log_info.author]:
+                    work_log_summary[work_log_info.author][
+                        time_delta.days] = []
+
+                work_log_summary[work_log_info.author][time_delta.days].append(
+                    work_log_info)
 
     return work_log_summary
 
@@ -315,13 +338,11 @@ def handleIssueWorkLogs(issue_data, start_date, end_date, team_stat,
             team_stat.logged_time_testing += logged_time
             getMemberStatData(member_stat_dict,
                               member_name).logged_time_testing += logged_time
-
         elif issue_type == 'Bug':
             team_stat.logged_time_existing_bug += logged_time
             getMemberStatData(
                 member_stat_dict,
                 member_name).logged_time_existing_bug += logged_time
-
         else:
             # include sprint task and others
             team_stat.logged_time_new_feature += logged_time

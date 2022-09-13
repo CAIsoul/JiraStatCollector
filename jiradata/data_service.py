@@ -92,8 +92,7 @@ def getIssuesBySprintId(sprint_id):
     includeFields = BASIC_FIELDS + ['reporter', 'labels']
 
     issues = searchIssues(queryStr, includeFields, 0)
-
-    primaryIssues = []
+    issues = list(map(lambda x: JiraIssue(x), issues))
 
     return issues
 
@@ -104,6 +103,7 @@ def getIssuesByKeys(issue_keys):
     includeFields = BASIC_FIELDS + ['reporter', 'labels']
 
     issues = searchIssues(queryStr, includeFields, 0)
+    issues = list(map(lambda x: JiraIssue(x), issues))
 
     return issues
 
@@ -155,8 +155,7 @@ def getSprintReportInfo(board_id, sprint_id):
 
 
 def getSprintIssueDict(sprint_id):
-    all_issues = list(
-        map(lambda x: JiraIssue(x), getIssuesBySprintId(sprint_id)))
+    all_issues = getIssuesBySprintId(sprint_id)
 
     primary_issue_dict = {}
 

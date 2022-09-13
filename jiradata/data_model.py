@@ -195,13 +195,13 @@ class MemberStat:
 
 
 class WorkLogInfo:
-    member = ''
+    author = ''
     duration = 0
-    issueKey = ''
+    issue_key = ''
     created = None
 
-    def __init__(self, log_data, issue_key) -> None:
-        self.member = log_data['author']['displayName']
-        self.duration = log_data['timeSpentSeconds']
-        self.issueKey = issue_key
-        self.created = log_data['created']
+    def __init__(self, obj, primary_issue_key) -> None:
+        self.author = obj['author']['displayName']
+        self.duration = obj['timeSpentSeconds']
+        self.issue_key = primary_issue_key
+        self.created = parser.parse(obj['created'])
