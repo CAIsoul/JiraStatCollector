@@ -1,14 +1,6 @@
-import datetime
-import pytz
 from dateutil import parser
 from datetime import timedelta
-from jiradata.data_model import TeamStat, MemberStat, WorkLogInfo
-
-NEW_FEATURE_ISSUE_TYPES = ['Story', 'Change Request']
-PRIMARY_ISSUE_TYPES = ['Story', 'Change Request', 'Bug']
-SUB_ISSUE_TYPES = ['Sprint Bug', 'Sprint Task', 'Sub Test Execution']
-TEST_ISSUE_TYPES = ['Test Execution', 'Test Case']
-DONE_ISSUE_STATUSES = ['Done', 'Resolved', 'Fixed', 'Closed']
+from jiradata.data_model import NEW_FEATURE_ISSUE_TYPES, TeamStat, MemberStat, WorkLogInfo
 
 
 # summarize sprint stat

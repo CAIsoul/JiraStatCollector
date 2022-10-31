@@ -7,7 +7,7 @@ import requests
 import configparser
 import os
 
-from jiradata.data_model import JiraIssue
+from jiradata.data_model import IGNORE_ISSUE_TYPES, PRIMARY_ISSUE_TYPES, JiraIssue
 
 config = configparser.ConfigParser()
 configFilePath = os.path.join(os.path.dirname(__file__) + r'/../app.ini')
@@ -159,12 +159,14 @@ def getSprintIssueDict(sprint_id):
 
     primary_issue_dict = {}
 
+    # Process primary issues in the first iteration
     for issue in all_issues:
-        if issue.is_primary() == True:
+        if issue.type in PRIMARY_ISSUE_TYPES:
             primary_issue_dict[issue.id] = issue
 
+    # Process other issues in the second iteration.
     for issue in all_issues:
-        if issue.is_primary() == True:
+        if issue.type in IGNORE_ISSUE_TYPES or issue.type in PRIMARY_ISSUE_TYPES:
             continue
 
         parent_issue = primary_issue_dict[issue.parent_id]

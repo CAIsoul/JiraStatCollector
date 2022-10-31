@@ -1,5 +1,6 @@
 from dateutil import parser
 
+IGNORE_ISSUE_TYPES = ['Epic']
 NEW_FEATURE_ISSUE_TYPES = ['Story', 'Change Request', 'Feature Request']
 PRIMARY_ISSUE_TYPES = [
     'Story', 'Feature Request', 'Change Request', 'Bug', 'Test Plan', 'Task'
@@ -38,16 +39,15 @@ class JiraIssue():
         self.reporter = obj['fields']['reporter']['displayName']
         self.labels = obj['fields']['labels']
 
-        if self.is_primary():
+        if self.type in IGNORE_ISSUE_TYPES:
+            pass
+        elif self.type in PRIMARY_ISSUE_TYPES:
             self.resolution_date = obj['fields']['resolutiondate']
             self.story_point = (0 if 'customfield_10026' not in obj['fields']
                                 or obj['fields']['customfield_10026'] is None
                                 else obj['fields']['customfield_10026'])
         else:
             self.parent_id = obj['fields']['parent']['id']
-
-    def is_primary(self):
-        return self.type in PRIMARY_ISSUE_TYPES
 
 
 class SprintSummary():
