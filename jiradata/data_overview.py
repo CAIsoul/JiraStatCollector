@@ -24,6 +24,7 @@ team_info = {
             'Wei (Nate) Shi',
             'Juntao (Steven) Cheng',
             'Chenjie (Leo) Deng',
+            'Jiangyi (Sailias) Peng',
         ],
         'tester': []
     },
@@ -51,7 +52,7 @@ team_info = {
     },
     'Team 3': {
         'developer': [
-            'Jiangyi (Sailias) Peng',
+            'Xiao (Aaron) Zhou',
             'Hantian (Tom) Wu',
             'Jiaqi Cai',
             'Zhe (Jack) Wang',
@@ -114,7 +115,7 @@ def exportSprintStat(sprint_id, team, share_pattern=1):
 
     sprint_summary = SprintSummary(sprint_report)
 
-    start_date = sprint_summary.start_date
+    start_date = sprint_summary.start_date - timedelta(days=1)
     end_date = sprint_summary.end_date + timedelta(days=1)
 
     team_stat = process.summarize_team_stat(sprint_issue_dict, start_date,
@@ -363,7 +364,9 @@ def exportSprintTimeLog(sprint_id, extra_issues):
         ])
 
         display_date_list = list(
-            map(lambda x: (start_date + timedelta(days=x)).strftime('%b %d'),
+            map(
+                lambda x:
+                (start_date + timedelta(days=x)).strftime('%b %d %a'),
                 range(sprint_day_count)))
         report_writter.writerow(['Member\Date'] + display_date_list)
 
