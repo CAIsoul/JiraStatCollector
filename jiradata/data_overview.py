@@ -23,17 +23,18 @@ team_info = {
             'Chen Li',
             'Wei (Nate) Shi',
             'Juntao (Steven) Cheng',
-            'Chenjie (Leo) Deng',
             'Jiangyi (Sailias) Peng',
         ],
-        'tester': []
+        'tester': [
+            'Huijing (Doreen) Zhu',
+        ]
     },
     'Team 1': {
         'developer': [
             'Zhiguo (Ronel) Wu',
             'Xiong (Bear) Xu',
-            'Damon Huang',
             'Hong (Jane) Zhou',
+            'Kun.Zou',
             'Adrain Xue',
         ],
         'tester': [
@@ -46,9 +47,11 @@ team_info = {
             'Paul Huang',
             'Howard Wu',
             'Fan (Jason) Zhu',
-            'Gang (Shawn) Huang',
+            'Ge Gao',
         ],
-        'tester': ['Nan (Murphy) Cheng']
+        'tester': [
+            'Nan (Murphy) Cheng',
+        ]
     },
     'Team 3': {
         'developer': [
@@ -89,7 +92,6 @@ team_info = {
     'Team 7': {
         'developer': [
             'Kai (Ted) Li',
-            'Zhan (Sam) Shi',
             'Min Li',
             'Xu (Sara) Chu',
             'Lu (Luke) Jian',
@@ -99,6 +101,17 @@ team_info = {
             'Feng (Fred) Zhou',
         ]
     },
+    'Team 8': {
+        'developer': [
+            'Damon Huang',
+            'Chenjie (Leo) Deng',
+            'Tianxiang (Sine) Zhang',
+            'Gang (Shawn) Huang',
+        ],
+        'tester': [
+            'Wenyan (Vivian) Zhao',
+        ]
+    }
 }
 
 
