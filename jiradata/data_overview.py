@@ -129,7 +129,7 @@ def exportSprintStat(sprint_id, team, share_pattern=1):
     sprint_summary = SprintSummary(sprint_report)
 
     start_date = sprint_summary.start_date - timedelta(days=1)
-    end_date = sprint_summary.end_date + timedelta(days=1)
+    end_date = sprint_summary.complete_date + timedelta(days=1)
 
     team_stat = process.summarize_team_stat(sprint_issue_dict, start_date,
                                             end_date,

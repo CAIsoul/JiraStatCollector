@@ -141,8 +141,8 @@ class SprintSummary():
         self.start_date = parser.parse(sprint['isoStartDate'])
         self.end_date = parser.parse(sprint['isoEndDate'])
         self.complete_date = parser.parse(
-            sprint['completeDate']
-        ) if sprint['completeDate'] != 'None' else 'None'
+            sprint['isoCompleteDate']
+        ) if sprint['isoCompleteDate'] != 'None' else 'None'
         self.goal = sprint['goal']
         self.fixed_bug_count = 0
         self.dev_bug_count = 0
