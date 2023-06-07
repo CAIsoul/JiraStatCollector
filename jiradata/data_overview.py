@@ -56,7 +56,7 @@ team_info = {
     'Team 3': {
         'developer': [
             'Xiao (Aaron) Zhou',
-            'Hantian (Tom) Wu',
+            'Yehui (Mike) Lu',
             'Jiaqi Cai',
             'Zhe (Jack) Wang',
             'Yi (Vitale) Zhou',

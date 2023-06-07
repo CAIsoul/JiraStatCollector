@@ -269,6 +269,10 @@ def shareByLoggedTime(contribution, story_point, developer_list, tester_list):
     if len(member_list) > 1:
         member_list = list(filter(lambda i: i in developer_list, member_list))
 
+    if len(member_list) == 1:
+        share_dict[member_list[0]] = story_point
+        return share_dict
+
     total_logged_time = 0
     for member in member_list:
         total_logged_time += contribution[member]
