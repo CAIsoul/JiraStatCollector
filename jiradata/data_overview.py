@@ -5,9 +5,10 @@ import pytz
 import configparser
 import jiradata.data_service as data
 import jiradata.data_process as process
-from jiradata.data_model import SprintSummary
+from jiradata.data_model import SprintSummary, JiraIssue
 
 from datetime import timedelta
+from datetime import datetime
 from dateutil import parser
 
 config = configparser.ConfigParser()
@@ -327,6 +328,95 @@ def exportSprintReport(sprint_id, team, share_pattern=1):
             ] + member_contribution)
 
     print('Sprint Overview Exported.')
+
+
+def exportMemberWorklogReport(sprint_id, team):
+    sprint_info = data.getSprintInfo(sprint_id)
+    start_date = datetime.fromisoformat(sprint_info['startDate'][:-1])
+    end_date = datetime.fromisoformat(sprint_info['endDate'][:-1])
+    dev_list = team_info[team]['developer']
+    timezone = pytz.FixedOffset(TIMEZONE_OFFSET)
+
+    issue_list = data.getMemberWorklogs(dev_list, start_date, end_date)
+    issue_list = list(map(lambda x: JiraIssue(x), issue_list))
+
+    start_date = start_date.replace(tzinfo=timezone)
+    end_date = end_date.replace(tzinfo=timezone)
+
+    worklog_summary = process.summarizedSprintWorkLogs(issue_list, start_date,
+                                                       end_date)
+    sprint_day_count = (end_date - start_date).days + 1
+
+    outputFilename = 'output/sprint-work-log (' + (re.sub(
+        '/', '-', sprint_info['name'])) + ').csv'
+
+    with open(outputFilename, mode='w', newline='') as report_file:
+        report_writter = csv.writer(report_file,
+                                    delimiter=',',
+                                    quotechar='"',
+                                    quoting=csv.QUOTE_MINIMAL)
+        report_writter.writerow(['Work Log Report:', sprint_info['name']])
+        report_writter.writerow([
+            'Period',
+            start_date.strftime('%Y-%m-%d'),
+            end_date.strftime('%Y-%m-%d')
+        ])
+
+        display_date_list = list(
+            map(lambda x: (start_date + timedelta(days=x)).strftime('%b %d'),
+                range(sprint_day_count)))
+        report_writter.writerow(['Member\Date'] + display_date_list)
+
+        for author in worklog_summary:
+            max = 0
+            total = {}
+
+            for day in worklog_summary[author]:
+                count = len(worklog_summary[author][day])
+                max = max if count < max else count
+
+            for i in range(max):
+                print_cols = []
+                first_col = author if i == 0 else ''
+                print_cols.append(first_col)
+
+                for j in range(sprint_day_count):
+                    this_col = ''
+                    if j in worklog_summary[author] and len(
+                            worklog_summary[author][j]) > i:
+                        log = worklog_summary[author][j][i]
+                        logged_hour = log.duration / 60 / 60
+                        this_col = '{} - {} hr(s) on {}'.format(
+                            log.created.astimezone(timezone).strftime('%H:%M'),
+                            round(logged_hour, 1), log.issue_key)
+
+                        if j in total:
+                            total[j] += logged_hour
+                        else:
+                            total[j] = logged_hour
+
+                    print_cols.append(this_col)
+
+                report_writter.writerow(print_cols)
+
+            report_writter.writerow([])
+
+            total_cols = ['Total:']
+            for k in range(sprint_day_count):
+                total_col = ''
+
+                if k in total:
+                    total_col = '{} hr(s)'.format(round(total[k], 1))
+
+                total_cols.append(total_col)
+
+            report_writter.writerow(total_cols)
+            report_writter.writerow([])
+            report_writter.writerow([])
+
+    print('Sprint Log Report Exported.')
+
+    return
 
 
 def exportSprintTimeLog(sprint_id, extra_issues):

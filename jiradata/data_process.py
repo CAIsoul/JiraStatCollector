@@ -164,10 +164,6 @@ def summarizedSprintWorkLogs(issue_list, start_date, end_date):
                                              minute=0,
                                              second=0,
                                              microsecond=0)
-    end_of_end_date = (end_date + timedelta(days=1)).replace(hour=0,
-                                                             minute=0,
-                                                             second=0,
-                                                             microsecond=0)
 
     check_list = {}
 

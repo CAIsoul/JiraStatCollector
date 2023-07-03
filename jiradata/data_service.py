@@ -1,5 +1,5 @@
-from logging import critical
 from jira import JIRA
+from datetime import timedelta
 from requests.api import request
 from requests.auth import HTTPBasicAuth
 import json
@@ -152,6 +152,42 @@ def getSprintReportInfo(board_id, sprint_id):
     response = requests.request("GET", url, headers=headers, auth=auth)
 
     return json.loads(response.text)
+
+
+def getMemberWorklogs(member_list, start_date, end_date):
+    author_param = "('" + "','".join(member_list) + "')"
+    url = TF_JIRA_DOMAIN + '/rest/api/2/search'
+
+    start_date_str = start_date.strftime("%Y-%m-%d")
+    end_date_str = end_date.strftime("%Y-%m-%d")
+
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+    payload = json.dumps({
+        "jql":
+        "worklogAuthor in {} and worklogDate >= '{}' and worklogDate <= '{}'".
+        format(author_param, start_date_str, end_date_str),
+        "maxResults":
+        100,
+        "fields": [
+            'worklog', 'key', 'issuetype', 'status', 'reporter', 'labels',
+            'parent', 'resolutiondate'
+        ],
+        "startAt":
+        0
+    })
+
+    response = requests.request("POST",
+                                url,
+                                data=payload,
+                                headers=headers,
+                                auth=auth)
+
+    data = json.loads(response.text)
+
+    return data["issues"]
 
 
 def getSprintIssueDict(sprint_id):
