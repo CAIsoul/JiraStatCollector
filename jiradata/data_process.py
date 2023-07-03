@@ -1,14 +1,6 @@
-import datetime
-import pytz
 from dateutil import parser
 from datetime import timedelta
-from jiradata.data_model import TeamStat, MemberStat, WorkLogInfo
-
-NEW_FEATURE_ISSUE_TYPES = ['Story', 'Change Request']
-PRIMARY_ISSUE_TYPES = ['Story', 'Change Request', 'Bug']
-SUB_ISSUE_TYPES = ['Sprint Bug', 'Sprint Task', 'Sub Test Execution']
-TEST_ISSUE_TYPES = ['Test Execution', 'Test Case']
-DONE_ISSUE_STATUSES = ['Done', 'Resolved', 'Fixed', 'Closed']
+from jiradata.data_model import NEW_FEATURE_ISSUE_TYPES, TeamStat, MemberStat, WorkLogInfo
 
 
 # summarize sprint stat
@@ -272,6 +264,10 @@ def shareByLoggedTime(contribution, story_point, developer_list, tester_list):
 
     if len(member_list) > 1:
         member_list = list(filter(lambda i: i in developer_list, member_list))
+
+    if len(member_list) == 1:
+        share_dict[member_list[0]] = story_point
+        return share_dict
 
     total_logged_time = 0
     for member in member_list:
