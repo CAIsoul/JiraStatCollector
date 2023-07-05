@@ -149,7 +149,7 @@ def appendContributionFromLogs(log_list,
         contributor_summary[name] += log['timeSpentSeconds']
 
 
-def summarizedSprintWorkLogs(issue_list, start_date, end_date):
+def summarizedSprintWorkLogs(issue_list, member_list, start_date, end_date):
     work_log_summary = {}
 
     start_of_start_date = start_date.replace(hour=0,
@@ -172,6 +172,9 @@ def summarizedSprintWorkLogs(issue_list, start_date, end_date):
                 continue
             else:
                 work_log_info = WorkLogInfo(log, issue.key)
+
+                if work_log_info.author not in member_list:
+                    continue
 
                 if work_log_info.author not in work_log_summary:
                     work_log_summary[work_log_info.author] = {}

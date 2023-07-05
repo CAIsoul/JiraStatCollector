@@ -33,21 +33,35 @@ class JiraIssue():
         self.contributors = {}
         self.id = obj['id']
         self.key = obj['key']
-        self.type = obj['fields']['issuetype']['name']
-        self.status = obj['fields']['status']['name']
-        self.work_logs = obj['fields']['worklog']['worklogs']
-        self.reporter = obj['fields']['reporter']['displayName']
-        self.labels = obj['fields']['labels']
+
+        fieldVals = obj['fields']
+
+        if 'issuetype' in fieldVals:
+            self.type = fieldVals['issuetype']['name']
+
+        if 'status' in fieldVals:
+            self.status = fieldVals['status']['name']
+
+        if 'worklog' in fieldVals:
+            self.work_logs = fieldVals['worklog']['worklogs']
+
+        if 'reporte' in fieldVals:
+            self.reporter = fieldVals['reporter']['displayName']
+
+        if 'labels' in fieldVals:
+            self.labels = fieldVals['labels']
 
         if self.type in IGNORE_ISSUE_TYPES:
             pass
         elif self.type in PRIMARY_ISSUE_TYPES:
-            self.resolution_date = obj['fields']['resolutiondate']
+            if 'resolutiondate' in fieldVals:
+                self.resolution_date = obj['fields']['resolutiondate']
+
             self.story_point = (0 if 'customfield_10026' not in obj['fields']
                                 or obj['fields']['customfield_10026'] is None
                                 else obj['fields']['customfield_10026'])
-        else:
-            self.parent_id = obj['fields']['parent']['id']
+        elif 'parent' in fieldVals:
+            self.parent_id = fieldVals['parent']['id']
 
 
 class SprintSummary():

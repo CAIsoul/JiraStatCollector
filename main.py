@@ -7,4 +7,4 @@ import jiradata.data_overview as overview
 # # export spring time logs
 # overview.exportSprintTimeLog(1721, ['RW-33181', 'RW-31702', 'RW-32880'])
 
-overview.exportMemberWorklogReport(1844, 'Team 3')
+overview.exportMemberWorklogReport(1859, 'Team 3')

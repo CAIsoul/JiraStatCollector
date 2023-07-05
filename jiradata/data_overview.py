@@ -349,17 +349,17 @@ def exportMemberWorklogReport(sprint_id, team):
     sprint_info = data.getSprintInfo(sprint_id)
     start_date = datetime.fromisoformat(sprint_info['startDate'][:-1])
     end_date = datetime.fromisoformat(sprint_info['endDate'][:-1])
-    dev_list = team_info[team]['developer']
+    member_list = team_info[team]['developer'] + team_info[team]['tester']
     timezone = pytz.FixedOffset(TIMEZONE_OFFSET)
 
-    issue_list = data.getMemberWorklogs(dev_list, start_date, end_date)
+    issue_list = data.getMemberWorklogs(member_list, start_date, end_date)
     issue_list = list(map(lambda x: JiraIssue(x), issue_list))
 
     start_date = start_date.replace(tzinfo=timezone)
     end_date = end_date.replace(tzinfo=timezone)
 
-    worklog_summary = process.summarizedSprintWorkLogs(issue_list, start_date,
-                                                       end_date)
+    worklog_summary = process.summarizedSprintWorkLogs(issue_list, member_list,
+                                                       start_date, end_date)
     sprint_day_count = (end_date - start_date).days + 1
 
     outputFilename = 'output/sprint-work-log (' + (re.sub(
