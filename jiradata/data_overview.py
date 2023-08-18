@@ -18,103 +18,6 @@ config.read(configFilePath, encoding='utf-8')
 TIMEZONE_OFFSET = config.get('TimeZone', 'OFFSET')
 TIMEZONE_OFFSET = 0 if TIMEZONE_OFFSET == '' else int(TIMEZONE_OFFSET)
 
-team_info = {
-    'R&D': {
-        'developer': [
-            'Chen Li',
-            'Wei (Nate) Shi',
-            'Juntao (Steven) Cheng',
-            'Jiangyi (Sailias) Peng',
-        ],
-        'tester': [
-            'Huijing (Doreen) Zhu',
-        ]
-    },
-    'Team 1': {
-        'developer': [
-            'Zhiguo (Ronel) Wu',
-            'Xiong (Bear) Xu',
-            'Hong (Jane) Zhou',
-            'Kun.Zou',
-            'Adrain Xue',
-        ],
-        'tester': [
-            'Hanwei (Susan) Mao',
-        ]
-    },
-    'Team 2': {
-        'developer': [
-            'Zhipeng (David) Xie',
-            'Paul Huang',
-            'Howard Wu',
-            'Fan (Jason) Zhu',
-            'Ge Gao',
-        ],
-        'tester': [
-            'Nan (Murphy) Cheng',
-        ]
-    },
-    'Team 3': {
-        'developer': [
-            'Xiao (Aaron) Zhou',
-            'Yehui (Mike) Lu',
-            'Jiaqi Cai',
-            'Zhe (Jack) Wang',
-            'Yi (Vitale) Zhou',
-        ],
-        'tester': [
-            'Weiying (Amy) Shi',
-        ]
-    },
-    'Team 4': {
-        'developer': [
-            'Xihong (Scott) Shi',
-            'Wei (Will) Xiao',
-            'Lianbo Lu',
-            'Haikuo Pan',
-            'Dongjun (Frank) Xing',
-        ],
-        'tester': [
-            'Zhihong (Kevin) Chen',
-        ]
-    },
-    'Team 6': {
-        'developer': [
-            'Qingjiao (Cary) Liu',
-            'Guoqing (Dong) Dong',
-            'Jie (Albin) Xi',
-            'Hugh Zhang',
-            'Min Hong',
-        ],
-        'tester': [
-            'Wei (Vivian) Zhang',
-        ]
-    },
-    'Team 7': {
-        'developer': [
-            'Kai (Ted) Li',
-            'Min Li',
-            'Xu (Sara) Chu',
-            'Lu (Luke) Jian',
-            'Lei Li',
-        ],
-        'tester': [
-            'Feng (Fred) Zhou',
-        ]
-    },
-    'Team 8': {
-        'developer': [
-            'Damon Huang',
-            'Chenjie (Leo) Deng',
-            'Tianxiang (Sine) Zhang',
-            'Gang (Shawn) Huang',
-        ],
-        'tester': [
-            'Wenyan (Vivian) Zhao',
-        ]
-    }
-}
-
 
 def displayPercentage(numerator, denominator):
     return str(100 * (numerator / denominator)) + "%" if denominator > 0 else 0
@@ -133,11 +36,12 @@ def exportSprintStat(sprint_id, board_id, team, share_pattern=1):
     start_date = sprint_summary.start_date - timedelta(days=1)
     end_date = sprint_summary.complete_date + timedelta(days=1)
 
+    developer_list = config.get(team, 'DEVELOPERS').split(',')
+    tester_list = config.get(team, 'TESTERS').split(',')
+
     team_stat = process.summarize_team_stat(sprint_issue_dict, start_date,
-                                            end_date,
-                                            team_info[team]['developer'],
-                                            team_info[team]['tester'],
-                                            share_pattern)
+                                            end_date, developer_list,
+                                            tester_list, share_pattern)
 
     sprint_summary.primary_issues = sprint_issue_dict
     sprint_summary.team_stat = team_stat
@@ -349,7 +253,9 @@ def exportMemberWorklogReport(sprint_id, team):
     sprint_info = data.getSprintInfo(sprint_id)
     start_date = datetime.fromisoformat(sprint_info['startDate'][:-1])
     end_date = datetime.fromisoformat(sprint_info['endDate'][:-1])
-    member_list = team_info[team]['developer'] + team_info[team]['tester']
+    developer_list = config.get(team, 'DEVELOPERS').split(',')
+    tester_list = config.get(team, 'TESTERS').split(',')
+    member_list = developer_list + tester_list
     timezone = pytz.FixedOffset(TIMEZONE_OFFSET)
 
     issue_list = data.getMemberWorklogs(member_list, start_date, end_date)
@@ -432,93 +338,3 @@ def exportMemberWorklogReport(sprint_id, team):
     print('Sprint Log Report Exported.')
 
     return
-
-
-def exportSprintTimeLog(sprint_id, extra_issues):
-    sprint_info = data.getSprintInfo(sprint_id)
-    issues = data.getIssuesBySprintId(sprint_id)
-
-    if extra_issues is not None and len(extra_issues) > 0:
-        issues += data.getIssuesByKeys(extra_issues)
-
-    # from timezone navie to aware
-    timezone = pytz.FixedOffset(TIMEZONE_OFFSET)
-    start_date = parser.parse(
-        sprint_info['startDate']).replace(tzinfo=timezone)
-    end_date = parser.parse(sprint_info['endDate']).replace(tzinfo=timezone)
-
-    work_log_summary = process.summarizedSprintWorkLogs(
-        issues, start_date, end_date)
-
-    sprint_day_count = (end_date - start_date).days + 1
-
-    outputFilename = 'output/sprint-work-log (' + (re.sub(
-        '/', '-', sprint_info['name'])) + ').csv'
-
-    with open(outputFilename, mode='w', newline='') as report_file:
-        report_writter = csv.writer(report_file,
-                                    delimiter=',',
-                                    quotechar='"',
-                                    quoting=csv.QUOTE_MINIMAL)
-        report_writter.writerow(['Work Log Report:', sprint_info['name']])
-        report_writter.writerow([
-            'Period',
-            start_date.strftime('%Y-%m-%d'),
-            end_date.strftime('%Y-%m-%d')
-        ])
-
-        display_date_list = list(
-            map(
-                lambda x:
-                (start_date + timedelta(days=x)).strftime('%b %d %a'),
-                range(sprint_day_count)))
-        report_writter.writerow(['Member\Date'] + display_date_list)
-
-        for author in work_log_summary:
-            max = 0
-            total = {}
-
-            for day in work_log_summary[author]:
-                count = len(work_log_summary[author][day])
-                max = max if count < max else count
-
-            for i in range(max):
-                print_cols = []
-                first_col = author if i == 0 else ''
-                print_cols.append(first_col)
-
-                for j in range(sprint_day_count):
-                    this_col = ''
-                    if j in work_log_summary[author] and len(
-                            work_log_summary[author][j]) > i:
-                        log = work_log_summary[author][j][i]
-                        logged_hour = log.duration / 60 / 60
-                        this_col = '{} - {} hr(s) on {}'.format(
-                            log.created.astimezone(timezone).strftime('%H:%M'),
-                            round(logged_hour, 1), log.issue_key)
-
-                        if j in total:
-                            total[j] += logged_hour
-                        else:
-                            total[j] = logged_hour
-
-                    print_cols.append(this_col)
-
-                report_writter.writerow(print_cols)
-
-            report_writter.writerow([])
-
-            total_cols = ['Total:']
-            for k in range(sprint_day_count):
-                total_col = ''
-
-                if k in total:
-                    total_col = '{} hr(s)'.format(round(total[k], 1))
-
-                total_cols.append(total_col)
-
-            report_writter.writerow(total_cols)
-            report_writter.writerow([])
-            report_writter.writerow([])
-
-    print('Sprint Log Report Exported.')

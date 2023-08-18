@@ -1,7 +1,11 @@
 [Jira]
-DOMAIN = [jira_domain]
-EMAIL = [email]
-TOKEN = [token]
+DOMAIN=<jira_domain>
+EMAIL=<email>
+TOKEN=<token>
 
 [TimeZone]
-OFFSET=[your_time_zone_offset_in_minute]
+OFFSET=<your_time_zone_offset_in_minute>
+
+[<TEAM_NAME>]
+DEVELOPERS=<NAME1>,<NAME2>,<NAME3>,<NAME4>
+TESTERS=<NAME1>,<NAME2>
