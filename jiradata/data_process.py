@@ -329,7 +329,7 @@ def handleIssueWorkLogs(issue_data, start_date, end_date, team_stat,
             getMemberStatData(member_stat_dict,
                               member_name).logged_time_dev_bug += logged_time
 
-        elif issue_type in ['Test Case', 'Sub Test Execution', 'Test Plan']:
+        elif issue_type in ['Test Plan']:
             team_stat.logged_time_testing += logged_time
             getMemberStatData(member_stat_dict,
                               member_name).logged_time_testing += logged_time
