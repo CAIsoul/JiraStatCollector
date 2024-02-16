@@ -345,15 +345,23 @@ def exportMemberWorklogReport(sprint_id, team_list):
 
             report_writter.writerow([])
 
+            daily_cols = ['Daily Sum:']
             total_cols = ['Total:']
+
+            total_logged = 0
+
             for k in range(sprint_day_count):
                 total_col = ''
 
                 if k in total:
+                    total_logged += total[k]
                     total_col = '{} hr(s)'.format(round(total[k], 1))
 
-                total_cols.append(total_col)
+                daily_cols.append(total_col)
 
+            total_cols.append('{} hr(s)'.format(round(total_logged), 1))
+
+            report_writter.writerow(daily_cols)
             report_writter.writerow(total_cols)
             report_writter.writerow([])
             report_writter.writerow([])
