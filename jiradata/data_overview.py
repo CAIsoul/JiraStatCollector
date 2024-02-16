@@ -9,7 +9,6 @@ from jiradata.data_model import SprintSummary, JiraIssue
 
 from datetime import timedelta
 from datetime import datetime
-from dateutil import parser
 
 config = configparser.ConfigParser()
 configFilePath = os.path.join(os.path.dirname(__file__) + r'/../app.ini')
@@ -23,7 +22,7 @@ def displayPercentage(numerator, denominator):
     return str(100 * (numerator / denominator)) + "%" if denominator > 0 else 0
 
 
-def exportSprintStat(sprint_id, board_id, team, share_pattern=1):
+def exportSprintStat(sprint_id, board_id, team_list, share_pattern=1):
     sprint_info = data.getSprintInfo(sprint_id)
     board_id = board_id if board_id is not None else sprint_info[
         "originBoardId"]
@@ -36,8 +35,17 @@ def exportSprintStat(sprint_id, board_id, team, share_pattern=1):
     start_date = sprint_summary.start_date - timedelta(days=1)
     end_date = sprint_summary.end_date + timedelta(days=1)
 
-    developer_list = config.get(team, 'DEVELOPERS').split(',')
-    tester_list = config.get(team, 'TESTERS').split(',')
+    developer_list = []
+    tester_list = []
+
+    for team in team_list:
+        team_dev = config.get(team, 'DEVELOPERS').split(',')
+        team_tester = config.get(team, 'TESTERS').split(',')
+        for dev in team_dev:
+            developer_list.append(dev)
+
+        for tester in team_tester:
+            tester_list.append(tester)
 
     team_stat = process.summarize_team_stat(sprint_issue_dict, start_date,
                                             end_date, developer_list,
@@ -49,9 +57,10 @@ def exportSprintStat(sprint_id, board_id, team, share_pattern=1):
     return sprint_summary
 
 
-def exportSprintReport(sprint_id, board_id, team, share_pattern=1):
+def exportSprintReport(sprint_id, board_id, team_list, share_pattern=1):
 
-    sprint_summary = exportSprintStat(sprint_id, board_id, team, share_pattern)
+    sprint_summary = exportSprintStat(sprint_id, board_id, team_list,
+                                      share_pattern)
 
     primary_issue_summary = sprint_summary.primary_issues
     team_stat = sprint_summary.team_stat
