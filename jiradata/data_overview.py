@@ -18,6 +18,29 @@ TIMEZONE_OFFSET = config.get('TimeZone', 'OFFSET')
 TIMEZONE_OFFSET = 0 if TIMEZONE_OFFSET == '' else int(TIMEZONE_OFFSET)
 
 
+def getDeveloperList(team_list):
+    developer_list = []
+
+    for team in team_list:
+        team_dev = config.get(team, 'DEVELOPERS').split(',')
+        for dev in team_dev:
+            developer_list.append(dev)
+
+    return developer_list
+
+
+def getTesterList(team_list):
+    tester_list = []
+
+    for team in team_list:
+        team_tester = config.get(team, 'TESTERS').split(',')
+
+        for tester in team_tester:
+            tester_list.append(tester)
+
+    return tester_list
+
+
 def displayPercentage(numerator, denominator):
     return str(100 * (numerator / denominator)) + "%" if denominator > 0 else 0
 
@@ -35,17 +58,8 @@ def exportSprintStat(sprint_id, board_id, team_list, share_pattern=1):
     start_date = sprint_summary.start_date - timedelta(days=1)
     end_date = sprint_summary.end_date + timedelta(days=1)
 
-    developer_list = []
-    tester_list = []
-
-    for team in team_list:
-        team_dev = config.get(team, 'DEVELOPERS').split(',')
-        team_tester = config.get(team, 'TESTERS').split(',')
-        for dev in team_dev:
-            developer_list.append(dev)
-
-        for tester in team_tester:
-            tester_list.append(tester)
+    developer_list = getDeveloperList(team_list)
+    tester_list = getTesterList(team_list)
 
     team_stat = process.summarize_team_stat(sprint_issue_dict, start_date,
                                             end_date, developer_list,
@@ -258,12 +272,12 @@ def exportSprintReport(sprint_id, board_id, team_list, share_pattern=1):
     print('Sprint Overview Exported.')
 
 
-def exportMemberWorklogReport(sprint_id, team):
+def exportMemberWorklogReport(sprint_id, team_list):
     sprint_info = data.getSprintInfo(sprint_id)
     start_date = datetime.fromisoformat(sprint_info['startDate'][:-1])
     end_date = datetime.fromisoformat(sprint_info['endDate'][:-1])
-    developer_list = config.get(team, 'DEVELOPERS').split(',')
-    tester_list = config.get(team, 'TESTERS').split(',')
+    developer_list = getDeveloperList(team_list)
+    tester_list = getTesterList(team_list)
     member_list = developer_list + tester_list
     timezone = pytz.FixedOffset(TIMEZONE_OFFSET)
 
