@@ -1,5 +1,4 @@
 from jira import JIRA
-from datetime import timedelta
 from requests.api import request
 from requests.auth import HTTPBasicAuth
 import json
@@ -154,7 +153,7 @@ def getSprintReportInfo(board_id, sprint_id):
     return json.loads(response.text)
 
 
-def getMemberWorklogs(member_list, start_date, end_date):
+def getMemberWorklogs(member_list, start_date, end_date, start_at=0):
     author_param = "('" + "','".join(member_list) + "')"
     url = TF_JIRA_DOMAIN + '/rest/api/2/search'
 
@@ -173,7 +172,7 @@ def getMemberWorklogs(member_list, start_date, end_date):
         100,
         "fields": ['worklog'],
         "startAt":
-        0
+        start_at
     })
 
     response = requests.request("POST",
@@ -183,8 +182,14 @@ def getMemberWorklogs(member_list, start_date, end_date):
                                 auth=auth)
 
     data = json.loads(response.text)
+    issues = data["issues"]
+    total = int(data["total"])
 
-    return data["issues"]
+    if len(issues) + start_at < total:
+        issues += getMemberWorklogs(member_list, start_date, end_date,
+                                    len(issues))
+
+    return issues
 
 
 def getSprintIssueDict(sprint_id):
@@ -208,28 +213,3 @@ def getSprintIssueDict(sprint_id):
             parent_issue.sub_issues.append(issue)
 
     return primary_issue_dict
-
-
-def getWorklogsByAuthorAndDateRange(author, start_date, end_date):
-    url = TF_JIRA_DOMAIN + '/rest/api/2/search'
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-    }
-    payload = json.dumps({
-        "jql":
-        "worklogAuthor='{}' and worklogDate >= '{}' and worklogDate <= '{}'".
-        format(author, start_date, end_date),
-        "maxResults":
-        100,
-    })
-
-    response = requests.request("POST",
-                                url,
-                                data=payload,
-                                headers=headers,
-                                auth=auth)
-
-    data = json.loads(response.text)
-
-    return data
