@@ -213,3 +213,32 @@ def getSprintIssueDict(sprint_id):
             parent_issue.sub_issues.append(issue)
 
     return primary_issue_dict
+
+
+def getWorklogsByAuthorAndDateRange(author, start_date, end_date):
+    url = TF_JIRA_DOMAIN + '/rest/api/2/search'
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+    payload = json.dumps({
+        "jql":
+        "worklogAuthor='{}' and worklogDate >= '{}' and worklogDate <= '{}'".
+        format(author, start_date, end_date),
+        "maxResults":
+        100,
+    })
+
+    response = requests.request("POST",
+                                url,
+                                data=payload,
+                                headers=headers,
+                                auth=auth)
+
+    data = json.loads(response.text)
+
+    return data
+
+
+def getBoards():
+    return 

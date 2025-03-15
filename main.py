@@ -6,3 +6,4 @@ import jiradata.data_overview as overview
 
 # # export spring time logs
 overview.exportMemberWorklogReport(2008, ['TFSH3', 'TFSH9'])
+overview.exportMemberWorklogReport(2266, 'TFSH3')
