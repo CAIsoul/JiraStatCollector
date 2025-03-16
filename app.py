@@ -6,20 +6,46 @@ from jiradata.data_model import SprintSummary, JiraIssue
 app = Flask(__name__)
 CORS(app)
 
+
 @app.route('/get-sprint-data', methods=['GET'])
 def get_sprint_data():
     sprint_id = request.args.get('sprint_id')
 
     if not sprint_id:
         return jsonify({'error': 'Sprint Id is required'}), 400
-    
+
     sprint_data = JiraData.getSprintInfo(sprint_id)
 
     if sprint_data:
         return jsonify(sprint_data)
     else:
         return jsonify({'error': 'Failed to fetch sprint data'}), 500
-    
+
+
+@app.route('/get-boards', methods=['GET'])
+def get_boards():
+    board_list = JiraData.getBoards()
+
+    if board_list:
+        return jsonify(board_list)
+    else:
+        return jsonify({'error': 'Failed to fetch boards data'}), 500
+
+
+@app.route('/get-board-sprints', methods=['GET'])
+def get_board_sprints():
+    board_id = request.args.get('board_id')
+
+    if not board_id:
+        return jsonify({'error': 'Board Id is required'}), 400
+
+    sprints_data = JiraData.getSprintsByBoardId(board_id)
+
+    if sprints_data:
+        return jsonify(sprints_data)
+    else:
+        return jsonify({'error': 'Failed to fetch sprints'}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

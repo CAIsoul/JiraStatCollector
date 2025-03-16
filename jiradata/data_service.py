@@ -241,4 +241,41 @@ def getWorklogsByAuthorAndDateRange(author, start_date, end_date):
 
 
 def getBoards():
-    return 
+    url = TF_JIRA_DOMAIN + '/rest/agile/1.0/board'
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.request("GET", url, headers=headers, auth=auth)
+
+    data = json.loads(response.text)
+
+    return data
+
+
+def getSprintsByBoardId(board_id, start_at=0):
+    url = TF_JIRA_DOMAIN + f"/rest/agile/1.0/board/{board_id}/sprint"
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    boards = []
+    response = requests.request("GET",
+                                url,
+                                params={
+                                    'start_at': start_at,
+                                },
+                                headers=headers,
+                                auth=auth)
+
+    data = json.loads(response.text)
+
+    boards = boards + data["values"]
+
+    if start_at + data["maxResults"] < data["total"]:
+        boards = boards + getSprintsByBoardId(
+            board_id, start_at=start_at + data["maxResults"])
+
+    return boards

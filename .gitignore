@@ -3,3 +3,6 @@
 /__pycache__
 __pycache__
 /output
+/myenv/Lib/site-packages
+/jiradata/__pycache__
+/myenv
