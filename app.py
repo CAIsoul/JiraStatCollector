@@ -9,7 +9,7 @@ CORS(app)
 
 @app.route('/get-sprint-data', methods=['GET'])
 def get_sprint_data():
-    sprint_id = request.args.get('sprint_id')
+    sprint_id = request.args.get('sprintId')
 
     if not sprint_id:
         return jsonify({'error': 'Sprint Id is required'}), 400
@@ -34,17 +34,32 @@ def get_boards():
 
 @app.route('/get-board-sprints', methods=['GET'])
 def get_board_sprints():
-    board_id = request.args.get('board_id')
+    board_id = request.args.get('boardId')
 
     if not board_id:
         return jsonify({'error': 'Board Id is required'}), 400
 
-    sprints_data = JiraData.getSprintsByBoardId(board_id)
+    sprints_data = JiraData.getSprintsForBoard(board_id)
 
     if sprints_data:
         return jsonify(sprints_data)
     else:
         return jsonify({'error': 'Failed to fetch sprints'}), 500
+
+
+@app.route('/get-sprint-issues', methods=['GET'])
+def get_sprint_issues():
+    sprint_id = request.args.get('sprintId')
+
+    if not sprint_id:
+        return jsonify({'error': 'Sprint Id is required'}), 400
+
+    issues_data = JiraData.getIssuesForSprint(sprint_id)
+
+    if issues_data:
+        return jsonify(issues_data)
+    else:
+        return jsonify({'error': 'Failed to fetch issues'}), 500
 
 
 if __name__ == '__main__':

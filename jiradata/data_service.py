@@ -34,6 +34,7 @@ def generateQueryStr(
     issue_keys=[],
 ):
     criteriaList = []
+    sprint_id = int(sprint_id)
 
     if sprint_id > 0:
         criteriaList.append('sprint=%i' % sprint_id)
@@ -254,28 +255,55 @@ def getBoards():
     return data
 
 
-def getSprintsByBoardId(board_id, start_at=0):
+def getSprintsForBoard(board_id, start_at=0):
     url = TF_JIRA_DOMAIN + f"/rest/agile/1.0/board/{board_id}/sprint"
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json"
     }
 
-    boards = []
+    sprints = []
     response = requests.request("GET",
                                 url,
                                 params={
-                                    'start_at': start_at,
+                                    'startAt': start_at,
                                 },
                                 headers=headers,
                                 auth=auth)
 
     data = json.loads(response.text)
 
-    boards = boards + data["values"]
+    sprints = sprints + data["values"]
 
     if start_at + data["maxResults"] < data["total"]:
-        boards = boards + getSprintsByBoardId(
+        sprints = sprints + getSprintsForBoard(
             board_id, start_at=start_at + data["maxResults"])
 
-    return boards
+    return sprints
+
+
+def getIssuesForSprint(sprint_id, start_at=0):
+    url = TF_JIRA_DOMAIN + f"/rest/agile/1.0/sprint/{sprint_id}/issue"
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    issues = []
+    response = requests.request("GET",
+                                url,
+                                params={
+                                    'startAt': start_at,
+                                },
+                                headers=headers,
+                                auth=auth)
+
+    data = json.loads(response.text)
+
+    issues = issues + data["issues"]
+
+    if start_at + data["maxResults"] < data["total"]:
+        issues = issues + getIssuesForSprint(
+            sprint_id, start_at=start_at + data["maxResults"])
+
+    return issues
