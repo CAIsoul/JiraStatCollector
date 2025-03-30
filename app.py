@@ -62,5 +62,24 @@ def get_sprint_issues():
         return jsonify({'error': 'Failed to fetch issues'}), 500
 
 
+@app.route('/get-sprint-report', methods=['GET'])
+def get_sprint_report():
+    sprint_id = request.args.get('sprintId')
+    board_id = request.args.get('boardId')
+
+    if not board_id:
+        return jsonify({'error': 'Board Id is required'}), 400
+
+    if not sprint_id:
+        return jsonify({'error': 'Sprint Id is required'}), 400
+
+    sprint_report = JiraData.getSprintReportInfo(board_id, sprint_id)
+
+    if sprint_report:
+        return jsonify(sprint_report)
+    else:
+        return jsonify({'error': 'Fail to fetch sprint report'}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True)
