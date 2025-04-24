@@ -296,16 +296,13 @@ def getSprintsForBoard(board_id, start_at=0):
 
 def getIssuesForSprint(sprint_id, start_at=0):
     url = TF_JIRA_DOMAIN + f"/rest/agile/1.0/sprint/{sprint_id}/issue"
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-    }
 
     issues = []
     response = requests.request("GET",
                                 url,
                                 params={
                                     'startAt': start_at,
+                                    'fields': 'summary,issuetype,status,priority,timespent,aggregatetimespent,aggregatetimeoriginalestimate,timeoriginalestimate,description,updated,duedate,resolutiondate,reporter,project,sprint,worklog,parent,closedSprints,subtasks,customfield_10026,customfield_10042'
                                 },
                                 headers=headers,
                                 auth=auth)

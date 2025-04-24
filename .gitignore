@@ -6,3 +6,5 @@ __pycache__
 /myenv/Lib/site-packages
 /jiradata/__pycache__
 /myenv
+.venv
+.vscode/launch.json
