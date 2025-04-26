@@ -241,7 +241,7 @@ def getWorklogsByAuthorAndDateRange(author, start_date, end_date):
     return data
 
 
-def getBoards(start_at=0):
+def getBoards(type='scrum', start_at=0):
     url = TF_JIRA_DOMAIN + '/rest/agile/1.0/board'
     headers = {
         "Accept": "application/json",
@@ -253,6 +253,7 @@ def getBoards(start_at=0):
                                 url,
                                 params={
                                     'startAt': start_at,
+                                    'type': type
                                 },
                                 headers=headers, 
                                 auth=auth)

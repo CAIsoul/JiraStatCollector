@@ -24,7 +24,9 @@ def get_sprint_data():
 
 @app.route('/get-boards', methods=['GET'])
 def get_boards():
-    board_list = JiraData.getBoards()
+    board_type = request.args.get('type')
+
+    board_list = JiraData.getBoards(board_type)
 
     if board_list:
         return jsonify(board_list)
