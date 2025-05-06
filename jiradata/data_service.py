@@ -280,6 +280,7 @@ def getSprintsForBoard(board_id, start_at=0):
                                 url,
                                 params={
                                     'startAt': start_at,
+                                    'state': 'active,closed'
                                 },
                                 headers=headers,
                                 auth=auth)
@@ -303,7 +304,7 @@ def getIssuesForSprint(sprint_id, start_at=0):
                                 url,
                                 params={
                                     'startAt': start_at,
-                                    'fields': 'summary,issuetype,status,priority,timespent,aggregatetimespent,aggregatetimeoriginalestimate,timeoriginalestimate,description,updated,duedate,resolutiondate,reporter,project,sprint,worklog,parent,closedSprints,subtasks,customfield_10026,customfield_10042'
+                                    'fields': 'summary,issuetype,status,priority,timespent,aggregatetimespent,aggregatetimeoriginalestimate,timeoriginalestimate,description,duedate,resolutiondate,worklog,parent,closedSprints,customfield_10026,customfield_10042'
                                 },
                                 headers=headers,
                                 auth=auth)

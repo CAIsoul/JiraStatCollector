@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import jiradata.data_service as JiraData
-from jiradata.data_model import SprintSummary, JiraIssue
+from jiradata.DataService import jira_service
 
 app = Flask(__name__)
 CORS(app)
@@ -14,7 +13,7 @@ def get_sprint_data():
     if not sprint_id:
         return jsonify({'error': 'Sprint Id is required'}), 400
 
-    sprint_data = JiraData.getSprintInfo(sprint_id)
+    sprint_data = jira_service.get_sprint_info(sprint_id)
 
     if sprint_data:
         return jsonify(sprint_data)
@@ -26,7 +25,7 @@ def get_sprint_data():
 def get_boards():
     board_type = request.args.get('type')
 
-    board_list = JiraData.getBoards(board_type)
+    board_list = jira_service.get_boards(board_type)
 
     if board_list:
         return jsonify(board_list)
@@ -41,7 +40,7 @@ def get_board_sprints():
     if not board_id:
         return jsonify({'error': 'Board Id is required'}), 400
 
-    sprints_data = JiraData.getSprintsForBoard(board_id)
+    sprints_data = jira_service.get_sprints_for_board(board_id)
 
     if sprints_data:
         return jsonify(sprints_data)
@@ -56,7 +55,7 @@ def get_sprint_issues():
     if not sprint_id:
         return jsonify({'error': 'Sprint Id is required'}), 400
 
-    issues_data = JiraData.getIssuesForSprint(sprint_id)
+    issues_data = jira_service.get_issues_for_sprint(sprint_id)
 
     if issues_data:
         return jsonify(issues_data)
@@ -75,7 +74,7 @@ def get_sprint_report():
     if not sprint_id:
         return jsonify({'error': 'Sprint Id is required'}), 400
 
-    sprint_report = JiraData.getSprintReportInfo(board_id, sprint_id)
+    sprint_report = jira_service.get_sprint_report(board_id, sprint_id)
 
     if sprint_report:
         return jsonify(sprint_report)
