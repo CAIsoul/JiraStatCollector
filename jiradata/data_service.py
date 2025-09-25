@@ -57,8 +57,8 @@ def generateQueryStr(
 
 
 # Search for all issues
-def searchIssues(queryStr, includeFields, startAt=0):
-    url = TF_JIRA_DOMAIN + '/rest/api/2/search'
+def searchIssues(queryStr, includeFields, next_page_token=""):
+    url = TF_JIRA_DOMAIN + '/rest/api/3/search/jql'
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json"
@@ -67,7 +67,7 @@ def searchIssues(queryStr, includeFields, startAt=0):
         "jql": queryStr,
         "maxResults": 100,
         "fields": includeFields,
-        "startAt": startAt
+        "nextPageToken": next_page_token
     })
 
     response = requests.request("POST",
@@ -78,10 +78,10 @@ def searchIssues(queryStr, includeFields, startAt=0):
 
     data = json.loads(response.text)
     issues = data["issues"]
-    length = len(issues)
+    is_last = int(data["isLast"])
 
-    if data['total'] > data['startAt'] + length:
-        return issues + searchIssues(queryStr, includeFields, startAt + length)
+    if not is_last:
+        return issues + searchIssues(queryStr, includeFields, data["nextPageToken"])
 
     return issues
 
@@ -91,55 +91,14 @@ def getIssuesBySprintId(sprint_id):
     queryStr = generateQueryStr(sprint_id=sprint_id)
     includeFields = BASIC_FIELDS + ['reporter', 'labels']
 
-    issues = searchIssues(queryStr, includeFields, 0)
+    issues = searchIssues(queryStr, includeFields)
     issues = list(map(lambda x: JiraIssue(x), issues))
 
     return issues
-
-
-# get issues by keys
-def getIssuesByKeys(issue_keys):
-    queryStr = generateQueryStr(issue_keys=issue_keys)
-    includeFields = BASIC_FIELDS + ['reporter', 'labels']
-
-    issues = searchIssues(queryStr, includeFields, 0)
-    issues = list(map(lambda x: JiraIssue(x), issues))
-
-    return issues
-
-
-# get issues by board id
-def getIssuesByBoardId(board_id, startAt=0):
-    url = TF_JIRA_DOMAIN + '/rest/agile/1.0/board/' + str(board_id) + '/issue'
-    includeFields = BASIC_FIELDS
-
-    response = requests.get(url,
-                            params={
-                                'maxResults': 200,
-                                'fields': includeFields
-                            },
-                            headers=headers,
-                            auth=auth)
-
-    data = json.loads(response.text)
-
-    max = data['startAt'] + data['maxResults']
-
-    if max < data['total']:
-        return data['issues'] + getIssuesByBoardId(board_id, max)
-
-    return data['issues']
 
 
 def getSprintInfo(sprint_id):
     url = TF_JIRA_DOMAIN + '/rest/agile/1.0/sprint/' + str(sprint_id)
-    response = requests.request("GET", url, headers=headers, auth=auth)
-
-    return json.loads(response.text)
-
-
-def getBoardInfo(board_id):
-    url = TF_JIRA_DOMAIN + '/rest/agile/1.0/board/' + str(board_id)
     response = requests.request("GET", url, headers=headers, auth=auth)
 
     return json.loads(response.text)
@@ -154,9 +113,9 @@ def getSprintReportInfo(board_id, sprint_id):
     return json.loads(response.text)
 
 
-def getMemberWorklogs(member_list, start_date, end_date, start_at=0):
+def getMemberWorklogs(member_list, start_date, end_date, next_page_token=""):
     author_param = "('" + "','".join(member_list) + "')"
-    url = TF_JIRA_DOMAIN + '/rest/api/2/search'
+    url = TF_JIRA_DOMAIN + '/rest/api/3/search/jql'
 
     start_date_str = start_date.strftime("%Y-%m-%d")
     end_date_str = end_date.strftime("%Y-%m-%d")
@@ -172,8 +131,7 @@ def getMemberWorklogs(member_list, start_date, end_date, start_at=0):
         "maxResults":
         100,
         "fields": ['worklog'],
-        "startAt":
-        start_at
+        "nextPageToken": next_page_token
     })
 
     response = requests.request("POST",
@@ -184,11 +142,11 @@ def getMemberWorklogs(member_list, start_date, end_date, start_at=0):
 
     data = json.loads(response.text)
     issues = data["issues"]
-    total = int(data["total"])
+    is_last = int(data["isLast"])
 
-    if len(issues) + start_at < total:
+    if not is_last:
         issues += getMemberWorklogs(member_list, start_date, end_date,
-                                    len(issues))
+                                    data["nextPageToken"])
 
     return issues
 
@@ -217,7 +175,7 @@ def getSprintIssueDict(sprint_id):
 
 
 def getWorklogsByAuthorAndDateRange(author, start_date, end_date):
-    url = TF_JIRA_DOMAIN + '/rest/api/2/search'
+    url = TF_JIRA_DOMAIN + '/rest/api/3/search/jql'
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json"
